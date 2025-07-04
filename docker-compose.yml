@@ -1,0 +1,42 @@
+version: '3.9'
+
+services:
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    ports:
+      - "9000:9000" # MinIO S3-compatible API
+      - "9001:9001" # MinIO Console
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: password123
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: testdb
+      MYSQL_USER: testuser
+      MYSQL_PASSWORD: testpassword
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: mailpit
+    ports:
+      - "1025:1025" # SMTP port
+      - "8025:8025" # Web interface
+    environment:
+      MAILPIT_SMTP_BIND_ADDR: 0.0.0.0:1025
+      MAILPIT_HTTP_BIND_ADDR: 0.0.0.0:8025
+
+volumes:
+  minio-data:
+  mysql-data:
