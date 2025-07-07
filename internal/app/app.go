@@ -3,7 +3,7 @@ package app
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/riichi-mahjong-dev/backend/commons"
+	"github.com/riichi-mahjong-dev/backend-riichi/commons"
 )
 
 func CreateApp(appConfig commons.AppConfig) {

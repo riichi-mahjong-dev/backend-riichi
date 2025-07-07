@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/go-gomail/gomail"
-	"github.com/riichi-mahjong-dev/backend/configs"
+	"github.com/riichi-mahjong-dev/backend-riichi/configs"
 )
 
 type Emailer struct {

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/riichi-mahjong-dev/backend/configs"
-	"github.com/riichi-mahjong-dev/backend/database/seeders"
-	"github.com/riichi-mahjong-dev/backend/internal/models"
+	"github.com/riichi-mahjong-dev/backend-riichi/configs"
+	// "github.com/riichi-mahjong-dev/backend-riichi/database/seeders"
+	// "github.com/riichi-mahjong-dev/backend-riichi/internal/models"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )

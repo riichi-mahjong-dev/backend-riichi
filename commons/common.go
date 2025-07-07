@@ -1,8 +1,8 @@
 package commons
 
 import (
-	"github.com/riichi-mahjong-dev/backend/configs"
-	"github.com/riichi-mahjong-dev/backend/utils"
+	"github.com/riichi-mahjong-dev/backend-riichi/configs"
+	"github.com/riichi-mahjong-dev/backend-riichi/utils"
 	"gorm.io/gorm"
 )
 

@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/riichi-mahjong-dev/backend/internal/models"
-	"github.com/riichi-mahjong-dev/backend/internal/services"
-	"github.com/riichi-mahjong-dev/backend/utils"
+	// "github.com/riichi-mahjong-dev/backend-riichi/internal/models"
+	// "github.com/riichi-mahjong-dev/backend-riichi/internal/services"
+	"github.com/riichi-mahjong-dev/backend-riichi/utils"
 )
 
 type AuthMiddleware struct {

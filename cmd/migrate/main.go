@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
-	"github.com/riichi-mahjong-dev/backend/configs"
-	"github.com/riichi-mahjong-dev/backend/database"
+	"github.com/riichi-mahjong-dev/backend-riichi/configs"
+	"github.com/riichi-mahjong-dev/backend-riichi/database"
 )
 
 func main() {

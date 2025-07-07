@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/riichi-mahjong-dev/backend/internal/models"
+	// "github.com/riichi-mahjong-dev/backend-riichi/internal/models"
 	"golang.org/x/crypto/bcrypt"
 )
 

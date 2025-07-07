@@ -2,11 +2,11 @@ package app
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/riichi-mahjong-dev/backend/commons"
-	"github.com/riichi-mahjong-dev/backend/internal/handler"
-	"github.com/riichi-mahjong-dev/backend/internal/middleware"
-	"github.com/riichi-mahjong-dev/backend/internal/services"
-	"github.com/riichi-mahjong-dev/backend/utils"
+	"github.com/riichi-mahjong-dev/backend-riichi/commons"
+	"github.com/riichi-mahjong-dev/backend-riichi/internal/handler"
+	"github.com/riichi-mahjong-dev/backend-riichi/internal/middleware"
+	// "github.com/riichi-mahjong-dev/backend-riichi/internal/services"
+	"github.com/riichi-mahjong-dev/backend-riichi/utils"
 )
 
 func InitializeRoute(app *fiber.App, appConfig *commons.AppConfig) {
