@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/riichi-mahjong-dev/backend-riichi/configs"

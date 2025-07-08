@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/gofiber/fiber/v2/log"
+	"github.com/pressly/goose/v3"
 	"github.com/riichi-mahjong-dev/backend-riichi/configs"
-	// "github.com/riichi-mahjong-dev/backend-riichi/database/seeders"
-	// "github.com/riichi-mahjong-dev/backend-riichi/internal/models"
+
+	"github.com/riichi-mahjong-dev/backend-riichi/database/seeders"
+	"github.com/riichi-mahjong-dev/backend-riichi/internal/models"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -33,7 +36,9 @@ func ConnectDatabase(dbConfig *configs.DatabaseConfig) (*Database, error) {
 }
 
 func (database *Database) Migrate() {
-	database.Conn.AutoMigrate(&models.User{}, &models.Product{})
+	if err := goose.Up(database.Conn, "database/migrations"); err != nil {
+		log.Error(err)
+	}
 	fmt.Println("Database migrated")
 }
 
