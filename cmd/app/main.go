@@ -29,7 +29,7 @@ func main() {
 	}
 
 	appConfig := commons.AppConfig{
-		Db:     db.Conn,
+		Db:     db,
 		Mailer: mailer,
 		Env:    env,
 	}

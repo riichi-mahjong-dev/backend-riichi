@@ -2,12 +2,12 @@ package commons
 
 import (
 	"github.com/riichi-mahjong-dev/backend-riichi/configs"
+	"github.com/riichi-mahjong-dev/backend-riichi/database"
 	"github.com/riichi-mahjong-dev/backend-riichi/utils"
-	"gorm.io/gorm"
 )
 
 type AppConfig struct {
-	Db     *gorm.DB
+	Db     *database.Database
 	Mailer *utils.Emailer
 	Env    *configs.EnvConfig
 }

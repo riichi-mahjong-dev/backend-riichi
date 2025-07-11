@@ -6,17 +6,18 @@ import (
 )
 
 func init() {
-	goose.AddMigrationContext(upCreateParlourTable, downCreateParlourTable)
+	goose.AddMigration(upCreateParlourTable, downCreateParlourTable)
 }
 
 func upCreateParlourTable(tx *sql.Tx) error {
 	_, err := tx.Exec(`
 			CREATE TABLE parlours (
-				id BITINT NOT NULL AUTOINCREMENT,
+				id BIGINT NOT NULL AUTO_INCREMENT,
 				name VARCHAR(255) NOT NULL,
 				country VARCHAR(255) NOT NULL,
 				province_id BIGINT NOT NULL,
 				address TEXT,
+				PRIMARY KEY (id)
 			);
 		`)
 	return err

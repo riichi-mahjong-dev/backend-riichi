@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	// "github.com/riichi-mahjong-dev/backend-riichi/internal/models"
+	"github.com/riichi-mahjong-dev/backend-riichi/internal/models"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -27,7 +27,7 @@ func InitializeAuth(secretKey, refreshSecretKey string) *AuthToken {
 	}
 }
 
-func (authToken *AuthToken) GenerateToken(user *models.User) (string, string, error) {
+func (authToken *AuthToken) GenerateToken(user *models.Player) (string, string, error) {
 	userClaims := jwt.MapClaims{
 		"user_id": user.ID,
 		"exp":     time.Now().Add(15 * time.Minute).Unix(),
@@ -55,7 +55,7 @@ func (authToken *AuthToken) GenerateToken(user *models.User) (string, string, er
 }
 
 func (authToken *AuthToken) ValidateToken(tokenString string) (float64, float64, error) {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, jwt.ErrInvalidKey
 		}
@@ -71,7 +71,7 @@ func (authToken *AuthToken) ValidateToken(tokenString string) (float64, float64,
 }
 
 func (authToken *AuthToken) ValidateRefresh(tokenString string) (float64, float64, error) {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, jwt.ErrInvalidKey
 		}

@@ -6,17 +6,18 @@ import (
 )
 
 func init() {
-	goose.AddMigrationContext(upCreateRoleTable, downCreateRoleTable)
+	goose.AddMigration(upCreateRoleTable, downCreateRoleTable)
 }
 
 func upCreateRoleTable(tx *sql.Tx) error {
 	_, err := tx.Exec(`
 			CREATE TABLE roles (
-				id BIGINT NOT NULL AUTOINCREMENT,
+				id BIGINT NOT NULL AUTO_INCREMENT,
 				name VARCHAR(255) NOT NULL,
 				guard_name VARCHAR(255) NOT NULL,
 				created_at TIMESTAMP,
-				updated_at TIMESTAMP, 
+				updated_at TIMESTAMP,
+				PRIMARY KEY (id)
 			);
 		`)
 	return err

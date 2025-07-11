@@ -5,52 +5,106 @@ import (
 	"github.com/riichi-mahjong-dev/backend-riichi/commons"
 	"github.com/riichi-mahjong-dev/backend-riichi/internal/handler"
 	"github.com/riichi-mahjong-dev/backend-riichi/internal/middleware"
-	// "github.com/riichi-mahjong-dev/backend-riichi/internal/services"
-	"github.com/riichi-mahjong-dev/backend-riichi/utils"
+	"github.com/riichi-mahjong-dev/backend-riichi/internal/services"
 )
 
 func InitializeRoute(app *fiber.App, appConfig *commons.AppConfig) {
-	env := appConfig.Env
 	db := appConfig.Db
-	mailer := appConfig.Mailer
+	env := appConfig.Env
 
-	jwtKey := env.LoadJwtConfig()
-	authGenerator := utils.InitializeAuth(jwtKey.SecretKey, jwtKey.RefreshKey)
-	userService := services.InitializeUserService(authGenerator, db, mailer)
-	productService := services.InitializeProductService(db)
+	// Initialize services
+	playerService := services.NewPlayerService(db.Conn)
+	roleService := services.NewRoleService(db.Conn)
+	adminService := services.NewAdminService(db.Conn)
+	parlourService := services.NewParlourService(db.Conn)
+	matchService := services.NewMatchService(db.Conn)
+	provinceService := services.NewProvinceService(db.Conn)
+	postService := services.NewPostService(db.Conn)
 
-	oauth2Config := env.LoadOAuthConfig()
+	// Initialize auth service
+	jwtConfig := env.LoadJwtConfig()
+	authService := services.NewAuthService(db.Conn, playerService, adminService, jwtConfig.SecretKey)
 
-	authMiddleware := middleware.InitializeAuthMiddleware(userService, authGenerator)
+	// Initialize middleware
+	authMiddleware := middleware.NewAuthMiddleware(authService)
 
-	authHandler := handler.InitializeAuthHandler(userService, authGenerator, oauth2Config)
-	productHandler := handler.InitializeProductHandler(productService)
-	userHandler := handler.InitializeUserHandler(userService)
+	// Initialize handlers
+	playerHandler := handler.NewPlayerHandler(playerService)
+	roleHandler := handler.NewRoleHandler(roleService)
+	adminHandler := handler.NewAdminHandler(adminService)
+	parlourHandler := handler.NewParlourHandler(parlourService)
+	matchHandler := handler.NewMatchHandler(matchService)
+	provinceHandler := handler.NewProvinceHandler(provinceService)
+	postHandler := handler.NewPostHandler(postService)
+	authHandler := handler.NewAuthHandler(authService)
 
-	all := []string{"user", "admin"}
-	admin := []string{"admin"}
-
-	api := app.Group("/api", authMiddleware.CheckAuthorization)
-
-	api.Get("/users/:user_id", authMiddleware.CheckRole(all), userHandler.GetUser)
-	api.Get("/users", authMiddleware.CheckRole(all), userHandler.GetAllUser)
-	api.Post("/users", authMiddleware.CheckRole(admin), userHandler.CreateUser)
-	api.Put("/users/:user_id", authMiddleware.CheckRole(admin), userHandler.UpdateUser)
-	api.Delete("/users/:user_id", authMiddleware.CheckRole(admin), userHandler.DeleteUser)
-
-	api.Get("/products/:product_id", authMiddleware.CheckRole(all), productHandler.GetProduct)
-	api.Get("/products", authMiddleware.CheckRole(all), productHandler.GetAllProduct)
-	api.Post("/products", authMiddleware.CheckRole(admin), productHandler.PostCreateProduct)
-	api.Put("/products/:product_id", authMiddleware.CheckRole(admin), productHandler.UpdateProduct)
-	api.Delete("/products/:product_id", authMiddleware.CheckRole(admin), productHandler.DeleteProduct)
-
+	// Authentication routes (public)
 	auth := app.Group("/auth")
-
-	auth.Post("/user/login", authHandler.LoginUser)
-	auth.Post("/admin/login", authHandler.LoginAdmin)
+	auth.Post("/login/player", authHandler.LoginPlayer)
+	auth.Post("/login/admin", authHandler.LoginAdmin)
 	auth.Post("/refresh", authHandler.RefreshToken)
-	auth.Get("/google/login", authHandler.GoogleLogin)
-	auth.Get("/google/callback", authHandler.GoogleCallback)
 
-	app.Post("/register", authHandler.RegisterUser)
+	// API routes with authentication
+	api := app.Group("/api")
+
+	// Profile route (requires authentication)
+	api.Get("/profile", authMiddleware.CheckAuthorization, authHandler.GetProfile)
+
+	// Player routes (guests can view, admins can manage)
+	api.Get("/players", playerHandler.GetAllPlayers) // Public - guests can view
+	api.Get("/players/:id", playerHandler.GetPlayerByID) // Public - guests can view
+	api.Post("/players", playerHandler.CreatePlayer) // Public registration
+	api.Put("/players/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), playerHandler.UpdatePlayer)
+	api.Delete("/players/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"super-admin"}), playerHandler.DeletePlayer)
+
+	// Role routes (admin only)
+	api.Get("/roles", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), roleHandler.GetAllRoles)
+	api.Get("/roles/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), roleHandler.GetRoleByID)
+	api.Post("/roles", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"super-admin"}), roleHandler.CreateRole)
+	api.Put("/roles/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"super-admin"}), roleHandler.UpdateRole)
+	api.Delete("/roles/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"super-admin"}), roleHandler.DeleteRole)
+
+	// Admin routes (super-admin only)
+	api.Get("/admins", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"super-admin"}), adminHandler.GetAllAdmins)
+	api.Get("/admins/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"super-admin"}), adminHandler.GetAdminByID)
+	api.Post("/admins", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"super-admin"}), adminHandler.CreateAdmin)
+	api.Put("/admins/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"super-admin"}), adminHandler.UpdateAdmin)
+	api.Delete("/admins/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"super-admin"}), adminHandler.DeleteAdmin)
+
+	// Province routes (public view, admin modifications)
+	api.Get("/provinces", provinceHandler.GetAllProvinces) // Public - guests can view
+	api.Get("/provinces/:id", provinceHandler.GetProvinceByID) // Public - guests can view
+	api.Post("/provinces", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), provinceHandler.CreateProvince)
+	api.Put("/provinces/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), provinceHandler.UpdateProvince)
+	api.Delete("/provinces/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"super-admin"}), provinceHandler.DeleteProvince)
+
+	// Parlour routes (public view, admin modifications)
+	api.Get("/parlours", parlourHandler.GetAllParlours) // Public - guests can view
+	api.Get("/parlours/:id", parlourHandler.GetParlourByID) // Public - guests can view
+	api.Post("/parlours", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), parlourHandler.CreateParlour)
+	api.Put("/parlours/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), parlourHandler.UpdateParlour)
+	api.Delete("/parlours/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"super-admin"}), parlourHandler.DeleteParlour)
+
+	// Match routes (guests can view, players/admins can manage)
+	api.Get("/matches", matchHandler.GetAllMatches) // Public - guests can view
+	api.Get("/matches/:id", matchHandler.GetMatchByID) // Public - guests can view
+	api.Post("/matches", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"player", "admin"}), matchHandler.CreateMatch)
+	api.Put("/matches/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"player", "admin"}), matchHandler.UpdateMatch)
+	api.Delete("/matches/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), matchHandler.DeleteMatch)
+	api.Post("/matches/:id/approve", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), matchHandler.ApproveMatch)
+
+	// Post routes (public view, admin modifications)
+	api.Get("/posts", postHandler.GetAllPosts) // Public - guests can view
+	api.Get("/posts/:id", postHandler.GetPostByID) // Public - guests can view
+	api.Post("/posts", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), postHandler.CreatePost)
+	api.Put("/posts/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), postHandler.UpdatePost)
+	api.Delete("/posts/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), postHandler.DeletePost)
+
+	// Health check endpoint
+	api.Get("/health", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"status": "ok",
+			"message": "Server is running",
+		})
+	})
 }

@@ -6,13 +6,13 @@ import (
 )
 
 func init() {
-	goose.AddMigrationContext(upCreateMatchTable, downCreateMatchTable)
+	goose.AddMigration(upCreateMatchTable, downCreateMatchTable)
 }
 
 func upCreateMatchTable(tx *sql.Tx) error {
 	_, err := tx.Exec(`
 			CREATE TABLE matches (
-				id BIGINT NOT NULL AUTOINCREMENT,
+				id BIGINT NOT NULL AUTO_INCREMENT,
 				player_1_id BIGINT,
 				player_2_id BIGINT,
 				player_3_id BIGINT,
@@ -27,12 +27,13 @@ func upCreateMatchTable(tx *sql.Tx) error {
 				approved_at TIMESTAMP,
 				created_at TIMESTAMP,
 				updated_at TIMESTAMP,
+				PRIMARY KEY (id)
 			);
 		`)
 	return err
 }
 
 func downCreateMatchTable(tx *sql.Tx) error {
-	_, err := tx.Exec(`DROP TABLE matches`)
+	_, err := tx.Exec(`DROP TABLE matches;`)
 	return err
 }

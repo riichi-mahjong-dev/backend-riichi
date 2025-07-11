@@ -1,6 +1,7 @@
 package database
 
 import (
+	"database/sql"
 	"fmt"
 	"time"
 
@@ -8,14 +9,16 @@ import (
 	"github.com/pressly/goose/v3"
 	"github.com/riichi-mahjong-dev/backend-riichi/configs"
 
+	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/riichi-mahjong-dev/backend-riichi/database/migrations"
 	"github.com/riichi-mahjong-dev/backend-riichi/database/seeders"
-	"github.com/riichi-mahjong-dev/backend-riichi/internal/models"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
 type Database struct {
-	Conn *gorm.DB
+	Conn          *gorm.DB
+	migrationConn *sql.DB
 }
 
 func ConnectDatabase(dbConfig *configs.DatabaseConfig) (*Database, error) {
@@ -27,22 +30,30 @@ func ConnectDatabase(dbConfig *configs.DatabaseConfig) (*Database, error) {
 		return nil, fmt.Errorf("unable to load env file: %w", err)
 	}
 
+	sqlConn, err := sql.Open("mysql", dsn)
+
+	if err != nil {
+		return nil, fmt.Errorf("unable to connect sql", err)
+	}
+
 	sqlDB, _ := db.DB()
 	sqlDB.SetMaxIdleConns(10)
 	sqlDB.SetMaxOpenConns(100)
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
-	return &Database{Conn: db}, nil
+	return &Database{Conn: db, migrationConn: sqlConn}, nil
 }
 
 func (database *Database) Migrate() {
-	if err := goose.Up(database.Conn, "database/migrations"); err != nil {
+	goose.SetDialect("mysql")
+	if err := goose.Up(database.migrationConn, "database/migrations"); err != nil {
 		log.Error(err)
+		return
 	}
 	fmt.Println("Database migrated")
 }
 
 func (database *Database) Seeder(fresh bool) {
-	seeders.SeedDB(database.Conn).RunSeeder(fresh)
+	seeders.SeedDB(database.Conn).RunSeeder()
 	fmt.Println("Seeder done")
 }

@@ -2,9 +2,9 @@ package main
 
 import (
 	"log"
-
 	"github.com/riichi-mahjong-dev/backend-riichi/configs"
 	"github.com/riichi-mahjong-dev/backend-riichi/database"
+	"github.com/riichi-mahjong-dev/backend-riichi/database/seeders"
 )
 
 func main() {
@@ -17,5 +17,8 @@ func main() {
 		return
 	}
 
-	db.Migrate()
+	adminSeeder := seeders.NewAdminSeeder(db.Conn)
+	adminSeeder.SeedDefaultAdmin()
+	
+	log.Println("Admin seeding completed")
 }
