@@ -1,18 +1,22 @@
 package handler
 
 import (
+	"net/url"
 	"strconv"
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
+	"golang.org/x/text/unicode/rangetable"
 )
 
 type BaseHandler struct{}
 
 // Common response structure
 type Response struct {
-	Success bool        `json:"success"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data,omitempty"`
-	Error   string      `json:"error,omitempty"`
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+	Data    any    `json:"data,omitempty"`
+	Error   string `json:"error,omitempty"`
 }
 
 type PaginationMeta struct {
@@ -25,12 +29,22 @@ type PaginationMeta struct {
 type PaginatedResponse struct {
 	Success bool            `json:"success"`
 	Message string          `json:"message"`
-	Data    interface{}     `json:"data"`
+	Data    any             `json:"data"`
 	Meta    *PaginationMeta `json:"meta"`
 }
 
+type QueryPagination struct {
+	Search string `json:"q"`
+	SortBy string `json:"sortBy"`
+	Sort   string `json:"sort"`
+	Page string `json:"page"`
+	Limit  int `json:"limit"`
+	Offset int
+	Filters map[string]string `json:"filters"`
+}
+
 // Helper functions
-func (h *BaseHandler) SuccessResponse(c *fiber.Ctx, message string, data interface{}) error {
+func (h *BaseHandler) SuccessResponse(c *fiber.Ctx, message string, data any) error {
 	return c.Status(200).JSON(Response{
 		Success: true,
 		Message: message,
@@ -49,7 +63,7 @@ func (h *BaseHandler) ErrorResponse(c *fiber.Ctx, statusCode int, message string
 	return c.Status(statusCode).JSON(response)
 }
 
-func (h *BaseHandler) PaginatedSuccessResponse(c *fiber.Ctx, message string, data interface{}, meta *PaginationMeta) error {
+func (h *BaseHandler) PaginatedSuccessResponse(c *fiber.Ctx, message string, data any, meta *PaginationMeta) error {
 	return c.Status(200).JSON(PaginatedResponse{
 		Success: true,
 		Message: message,
@@ -58,22 +72,47 @@ func (h *BaseHandler) PaginatedSuccessResponse(c *fiber.Ctx, message string, dat
 	})
 }
 
-func (h *BaseHandler) GetPaginationParams(c *fiber.Ctx) (int, int) {
-	page := c.QueryInt("page", 1)
-	limit := c.QueryInt("limit", 10)
-	
-	if page < 1 {
-		page = 1
+func (h *BaseHandler) GetPaginationParams(c *fiber.Ctx) QueryPagination {
+	var queryPaginate QueryPagination
+
+	if err := c.QueryParser(&queryPaginate); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid query param"
+		})
 	}
-	if limit < 1 {
+
+	rawQuery := c.Context().QueryArgs().String()
+	parsed, _ := url.ParseQuery(rawQuery)
+
+	queryPaginate.Filters = make(map[string]string)
+
+	for key, value := range parsed {
+		if strings.Contains(key, "[") && strings.HasSuffix(key, "]") {
+			innerKey := key[len("filters[") : len(key)-1]
+			if len(values) > 0 {
+				queryPaginate.Filters[innerKey] = values[len(values)-1]
+			}
+		}
+	}
+
+	if queryPaginate.Page < 1 {
+		queryPaginate.Page = 1
+	}
+
+	if queryPaginate.Limit < 1 {
 		limit = 10
 	}
-	if limit > 100 {
-		limit = 100
+
+	if queryPaginate.Sort == "" {
+		queryPaginate.Sort = "ASC"
 	}
-	
-	offset := (page - 1) * limit
-	return limit, offset
+
+	if queryPaginate.SortBy == "" {
+		queryPaginate.SortBy = "id"
+	}
+
+	queryPaginate.Offset := (page - 1) * limit
+	return queryPaginate
 }
 
 func (h *BaseHandler) GetIDParam(c *fiber.Ctx) (uint64, error) {

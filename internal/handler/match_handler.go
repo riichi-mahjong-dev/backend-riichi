@@ -46,8 +46,8 @@ func (h *MatchHandler) GetMatchByID(c *fiber.Ctx) error {
 }
 
 func (h *MatchHandler) GetAllMatches(c *fiber.Ctx) error {
-	limit, offset := h.GetPaginationParams(c)
-	matches, err := h.MatchService.GetAllMatches(limit, offset)
+	queryPaginate := h.GetPaginationParams(c)
+	matches, err := h.MatchService.GetAllMatches(queryPaginate)
 	if err != nil {
 		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to retrieve matches", err)
 	}
@@ -58,7 +58,7 @@ func (h *MatchHandler) GetAllMatches(c *fiber.Ctx) error {
 		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to count matches", err)
 	}
 
-	meta := h.CalculatePaginationMeta(int(c.QueryInt("page", 1)), limit, total)
+	meta := h.CalculatePaginationMeta(int(c.QueryInt("page", 1)), queryPaginate.Limit, total)
 	return h.PaginatedSuccessResponse(c, "Matches retrieved successfully", matches, meta)
 }
 
@@ -115,4 +115,23 @@ func (h *MatchHandler) ApproveMatch(c *fiber.Ctx) error {
 	}
 
 	return h.SuccessResponse(c, "Match approved successfully", match)
+}
+
+func (h *MatchHandler) PointMatch(c *fiber.Ctx) error {
+	id, err := h.GetIDParam(c)
+	if err != nil {
+		return h.ErrorResponse(c, fiber.StatusBadRequest, "Invalid ID", err)
+	}
+
+	var req models.PointMatchRequest
+	if err := c.BodyParser(&req); err != nil {
+		return h.ErrorResponse(c, fiber.StatusBadRequest, "Invalid request", err)
+	}
+
+	match, err := h.MatchService.PointMatch(id, &req)
+	if err != nil {
+		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to save point match", err)
+	}
+
+	return h.SuccessResponse(c, "Point match saved", match)
 }

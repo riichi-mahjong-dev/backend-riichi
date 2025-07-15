@@ -1,9 +1,12 @@
 package services
 
 import (
+	"fmt"
 	"time"
-	"gorm.io/gorm"
+
+	"github.com/riichi-mahjong-dev/backend-riichi/internal/handler"
 	"github.com/riichi-mahjong-dev/backend-riichi/internal/models"
+	"gorm.io/gorm"
 )
 
 type MatchService struct {
@@ -18,17 +21,12 @@ func NewMatchService(db *gorm.DB) *MatchService {
 
 func (s *MatchService) CreateMatch(req *models.MatchRequest) (*models.Match, error) {
 	match := &models.Match{
-		Player1ID:    req.Player1ID,
-		Player2ID:    req.Player2ID,
-		Player3ID:    req.Player3ID,
-		Player4ID:    req.Player4ID,
-		Player1Score: req.Player1Score,
-		Player2Score: req.Player2Score,
-		Player3Score: req.Player3Score,
-		Player4Score: req.Player4Score,
-		ParlourID:    req.ParlourID,
-		CreatedBy:    req.CreatedBy,
-		ApprovedBy:   req.ApprovedBy,
+		Player1ID: req.Player1ID,
+		Player2ID: req.Player2ID,
+		Player3ID: req.Player3ID,
+		Player4ID: req.Player4ID,
+		ParlourID: req.ParlourID,
+		CreatedBy: req.CreatedBy,
 	}
 
 	err := s.Create(match)
@@ -36,6 +34,22 @@ func (s *MatchService) CreateMatch(req *models.MatchRequest) (*models.Match, err
 		return nil, err
 	}
 	return match, nil
+}
+
+func (s *MatchService) PointMatch(id uint64, req *models.PointMatchRequest) (*models.Match, error) {
+	updates := map[string]any{
+		"player_1_score": req.Player1Score,
+		"player_2_score": req.Player2Score,
+		"player_3_score": req.Player3Score,
+		"player_4_score": req.Player4Score,
+	}
+
+	err := s.Update(&models.Match{}, id, updates)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.GetMatchByID(id)
 }
 
 func (s *MatchService) GetMatchByID(id uint64) (*models.Match, error) {
@@ -48,7 +62,7 @@ func (s *MatchService) GetMatchByID(id uint64) (*models.Match, error) {
 	return &match, nil
 }
 
-func (s *MatchService) GetAllMatches(limit, offset int) ([]models.Match, error) {
+func (s *MatchService) GetAllMatches(queryPaginate handler.QueryPagination) ([]models.Match, error) {
 	var matches []models.Match
 	preloads := []string{"Player1", "Player2", "Player3", "Player4", "Parlour", "Parlour.Province"}
 	err := s.GetAllWithPreload(&matches, limit, offset, preloads...)
@@ -59,26 +73,36 @@ func (s *MatchService) GetAllMatches(limit, offset int) ([]models.Match, error) 
 }
 
 func (s *MatchService) UpdateMatch(id uint64, req *models.MatchRequest) (*models.Match, error) {
-	updates := map[string]interface{}{
-		"player_1_id":    req.Player1ID,
-		"player_2_id":    req.Player2ID,
-		"player_3_id":    req.Player3ID,
-		"player_4_id":    req.Player4ID,
-		"player_1_score": req.Player1Score,
-		"player_2_score": req.Player2Score,
-		"player_3_score": req.Player3Score,
-		"player_4_score": req.Player4Score,
-		"parlour_id":     req.ParlourID,
-		"created_by":     req.CreatedBy,
-		"approved_by":    req.ApprovedBy,
-	}
+	match, err := s.GetMatchByID(id)
 
-	err := s.Update(&models.Match{}, id, updates)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.GetMatchByID(id)
+	if match.ApprovedAt != nil || match.ApprovedBy != nil {
+		return nil, fmt.Errorf("match is already approved, cannot changed anymore")
+	}
+
+	updates := map[string]any{
+		"player_1_id": req.Player1ID,
+		"player_2_id": req.Player2ID,
+		"player_3_id": req.Player3ID,
+		"player_4_id": req.Player4ID,
+		"parlour_id":  req.ParlourID,
+	}
+
+	err = s.Update(&models.Match{}, id, updates)
+	if err != nil {
+		return nil, err
+	}
+
+	match.Player1ID = req.Player1ID
+	match.Player2ID = req.Player2ID
+	match.Player3ID = req.Player3ID
+	match.Player4ID = req.Player4ID
+	match.ParlourID = req.
+
+	return match, nil
 }
 
 func (s *MatchService) DeleteMatch(id uint64) error {
@@ -86,32 +110,45 @@ func (s *MatchService) DeleteMatch(id uint64) error {
 }
 
 func (s *MatchService) ApproveMatch(id uint64, approvedBy uint64) (*models.Match, error) {
-	now := time.Now()
-	updates := map[string]interface{}{
-		"approved_by": approvedBy,
-		"approved_at": &now,
-	}
+	match, err := s.GetMatchByID(id)
 
-	err := s.Update(&models.Match{}, id, updates)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.GetMatchByID(id)
+	if match.ApprovedBy != nil || match.ApprovedAt != nil {
+		return nil, fmt.Errorf("match is already approved")
+	}
+
+	now := time.Now()
+	updates := map[string]any{
+		"approved_by": approvedBy,
+		"approved_at": &now,
+	}
+
+	err = s.Update(&models.Match{}, id, updates)
+	if err != nil {
+		return nil, err
+	}
+
+	match.ApprovedAt = &now
+	match.ApprovedBy = &approvedBy
+
+	return match, nil
 }
 
-func (s *MatchService) GetMatchesByParlour(parlourID uint64, limit, offset int) ([]models.Match, error) {
+func (s *MatchService) GetMatchesByParlour(parlourID uint64, queryPaginate handler.QueryPagination) ([]models.Match, error) {
 	var matches []models.Match
 	query := s.DB.Where("parlour_id = ?", parlourID)
 	preloads := []string{"Player1", "Player2", "Player3", "Player4", "Parlour", "Parlour.Province"}
 	for _, preload := range preloads {
 		query = query.Preload(preload)
 	}
-	if limit > 0 {
-		query = query.Limit(limit)
+	if queryPaginate.Limit > 0 {
+		query = query.Limit(queryPaginate.Limit)
 	}
-	if offset > 0 {
-		query = query.Offset(offset)
+	if queryPaginate.Offset > 0 {
+		query = query.Offset(queryPaginate.Offset)
 	}
 	err := query.Find(&matches).Error
 	if err != nil {
