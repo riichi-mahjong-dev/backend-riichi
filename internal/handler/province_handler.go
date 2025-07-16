@@ -46,8 +46,9 @@ func (h *ProvinceHandler) GetProvinceByID(c *fiber.Ctx) error {
 }
 
 func (h *ProvinceHandler) GetAllProvinces(c *fiber.Ctx) error {
-	limit, offset := h.GetPaginationParams(c)
-	provinces, err := h.ProvinceService.GetAllProvinces(limit, offset)
+	queryPaginate := h.GetPaginationParams(c)
+
+	provinces, err := h.ProvinceService.GetAllProvinces(queryPaginate.Limit, queryPaginate.Offset)
 	if err != nil {
 		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to retrieve provinces", err)
 	}
@@ -58,7 +59,7 @@ func (h *ProvinceHandler) GetAllProvinces(c *fiber.Ctx) error {
 		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to count provinces", err)
 	}
 
-	meta := h.CalculatePaginationMeta(int(c.QueryInt("page", 1)), limit, total)
+	meta := h.CalculatePaginationMeta(int(c.QueryInt("page", 1)), queryPaginate.Limit, total)
 	return h.PaginatedSuccessResponse(c, "Provinces retrieved successfully", provinces, meta)
 }
 

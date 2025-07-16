@@ -46,8 +46,9 @@ func (h *AdminHandler) GetAdminByID(c *fiber.Ctx) error {
 }
 
 func (h *AdminHandler) GetAllAdmins(c *fiber.Ctx) error {
-	limit, offset := h.GetPaginationParams(c)
-	admins, err := h.AdminService.GetAllAdmins(limit, offset)
+	queryPaginate := h.GetPaginationParams(c)
+
+	admins, err := h.AdminService.GetAllAdmins(queryPaginate.Limit, queryPaginate.Offset)
 	if err != nil {
 		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to retrieve admins", err)
 	}
@@ -58,7 +59,7 @@ func (h *AdminHandler) GetAllAdmins(c *fiber.Ctx) error {
 		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to count admins", err)
 	}
 
-	meta := h.CalculatePaginationMeta(int(c.QueryInt("page", 1)), limit, total)
+	meta := h.CalculatePaginationMeta(int(c.QueryInt("page", 1)), queryPaginate.Limit, total)
 	return h.PaginatedSuccessResponse(c, "Admins retrieved successfully", admins, meta)
 }
 

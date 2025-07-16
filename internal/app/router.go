@@ -51,10 +51,10 @@ func InitializeRoute(app *fiber.App, appConfig *commons.AppConfig) {
 	api.Get("/profile", authMiddleware.CheckAuthorization, authHandler.GetProfile)
 
 	// Player routes (guests can view, admins can manage)
-	api.Get("/players", playerHandler.GetAllPlayers) // Public - guests can view
+	api.Get("/players", playerHandler.GetAllPlayers)     // Public - guests can view
 	api.Get("/players/:id", playerHandler.GetPlayerByID) // Public - guests can view
-	api.Post("/players", playerHandler.CreatePlayer) // Public registration
-	api.Put("/players/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), playerHandler.UpdatePlayer)
+	api.Post("/players", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin", "super-admin"}) playerHandler.CreatePlayer)     // Public registration
+	api.Put("/players/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin", "super-admin"}), playerHandler.UpdatePlayer)
 	api.Delete("/players/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"super-admin"}), playerHandler.DeletePlayer)
 
 	// Role routes (admin only)
@@ -72,21 +72,21 @@ func InitializeRoute(app *fiber.App, appConfig *commons.AppConfig) {
 	api.Delete("/admins/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"super-admin"}), adminHandler.DeleteAdmin)
 
 	// Province routes (public view, admin modifications)
-	api.Get("/provinces", provinceHandler.GetAllProvinces) // Public - guests can view
+	api.Get("/provinces", provinceHandler.GetAllProvinces)     // Public - guests can view
 	api.Get("/provinces/:id", provinceHandler.GetProvinceByID) // Public - guests can view
 	api.Post("/provinces", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), provinceHandler.CreateProvince)
 	api.Put("/provinces/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), provinceHandler.UpdateProvince)
 	api.Delete("/provinces/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"super-admin"}), provinceHandler.DeleteProvince)
 
 	// Parlour routes (public view, admin modifications)
-	api.Get("/parlours", parlourHandler.GetAllParlours) // Public - guests can view
+	api.Get("/parlours", parlourHandler.GetAllParlours)     // Public - guests can view
 	api.Get("/parlours/:id", parlourHandler.GetParlourByID) // Public - guests can view
-	api.Post("/parlours", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), parlourHandler.CreateParlour)
-	api.Put("/parlours/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), parlourHandler.UpdateParlour)
+	api.Post("/parlours", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin", "super-admin"}), parlourHandler.CreateParlour)
+	api.Put("/parlours/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin", "super-admin"}), parlourHandler.UpdateParlour)
 	api.Delete("/parlours/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"super-admin"}), parlourHandler.DeleteParlour)
 
 	// Match routes (guests can view, players/admins can manage)
-	api.Get("/matches", matchHandler.GetAllMatches) // Public - guests can view
+	api.Get("/matches", matchHandler.GetAllMatches)    // Public - guests can view
 	api.Get("/matches/:id", matchHandler.GetMatchByID) // Public - guests can view
 	api.Post("/matches", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"player", "admin"}), matchHandler.CreateMatch)
 	api.Put("/matches/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"player", "admin"}), matchHandler.UpdateMatch)
@@ -94,7 +94,7 @@ func InitializeRoute(app *fiber.App, appConfig *commons.AppConfig) {
 	api.Post("/matches/:id/approve", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), matchHandler.ApproveMatch)
 
 	// Post routes (public view, admin modifications)
-	api.Get("/posts", postHandler.GetAllPosts) // Public - guests can view
+	api.Get("/posts", postHandler.GetAllPosts)     // Public - guests can view
 	api.Get("/posts/:id", postHandler.GetPostByID) // Public - guests can view
 	api.Post("/posts", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), postHandler.CreatePost)
 	api.Put("/posts/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), postHandler.UpdatePost)
@@ -103,7 +103,7 @@ func InitializeRoute(app *fiber.App, appConfig *commons.AppConfig) {
 	// Health check endpoint
 	api.Get("/health", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
-			"status": "ok",
+			"status":  "ok",
 			"message": "Server is running",
 		})
 	})

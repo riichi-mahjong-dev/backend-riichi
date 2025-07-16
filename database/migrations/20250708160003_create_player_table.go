@@ -20,9 +20,10 @@ func upCreatePlayerTable(tx *sql.Tx) error {
 				country VARCHAR(255) NOT NULL,
 				province_id BIGINT NOT NULL,
 				name VARCHAR(255) NOT NULL,
-				created_at TIMESTAMP,
-				updated_at TIMESTAMP,
-				PRIMARY KEY (id)
+				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+				PRIMARY KEY (id),
+				FOREIGN KEY (province_id) REFERENCES provinces(id) ON DELETE CASCADE ON UPDATE CASCADE
 			);
 		`)
 	return err

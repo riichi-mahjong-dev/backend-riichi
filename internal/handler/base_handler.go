@@ -1,12 +1,13 @@
 package handler
 
 import (
+	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
-	"golang.org/x/text/unicode/rangetable"
+	"github.com/riichi-mahjong-dev/backend-riichi/commons"
 )
 
 type BaseHandler struct{}
@@ -31,16 +32,6 @@ type PaginatedResponse struct {
 	Message string          `json:"message"`
 	Data    any             `json:"data"`
 	Meta    *PaginationMeta `json:"meta"`
-}
-
-type QueryPagination struct {
-	Search string `json:"q"`
-	SortBy string `json:"sortBy"`
-	Sort   string `json:"sort"`
-	Page string `json:"page"`
-	Limit  int `json:"limit"`
-	Offset int
-	Filters map[string]string `json:"filters"`
 }
 
 // Helper functions
@@ -72,13 +63,11 @@ func (h *BaseHandler) PaginatedSuccessResponse(c *fiber.Ctx, message string, dat
 	})
 }
 
-func (h *BaseHandler) GetPaginationParams(c *fiber.Ctx) QueryPagination {
-	var queryPaginate QueryPagination
+func (h *BaseHandler) GetPaginationParams(c *fiber.Ctx) commons.QueryPagination {
+	var queryPaginate commons.QueryPagination
 
 	if err := c.QueryParser(&queryPaginate); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid query param"
-		})
+		fmt.Errorf("Invalid query param")
 	}
 
 	rawQuery := c.Context().QueryArgs().String()
@@ -89,8 +78,8 @@ func (h *BaseHandler) GetPaginationParams(c *fiber.Ctx) QueryPagination {
 	for key, value := range parsed {
 		if strings.Contains(key, "[") && strings.HasSuffix(key, "]") {
 			innerKey := key[len("filters[") : len(key)-1]
-			if len(values) > 0 {
-				queryPaginate.Filters[innerKey] = values[len(values)-1]
+			if len(value) > 0 {
+				queryPaginate.Filters[innerKey] = value[len(value)-1]
 			}
 		}
 	}
@@ -100,7 +89,7 @@ func (h *BaseHandler) GetPaginationParams(c *fiber.Ctx) QueryPagination {
 	}
 
 	if queryPaginate.Limit < 1 {
-		limit = 10
+		queryPaginate.Limit = 10
 	}
 
 	if queryPaginate.Sort == "" {
@@ -111,7 +100,7 @@ func (h *BaseHandler) GetPaginationParams(c *fiber.Ctx) QueryPagination {
 		queryPaginate.SortBy = "id"
 	}
 
-	queryPaginate.Offset := (page - 1) * limit
+	queryPaginate.Offset = (queryPaginate.Page - 1) * queryPaginate.Limit
 	return queryPaginate
 }
 

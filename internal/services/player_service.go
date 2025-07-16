@@ -1,9 +1,10 @@
 package services
 
 import (
+	"github.com/riichi-mahjong-dev/backend-riichi/commons"
+	"github.com/riichi-mahjong-dev/backend-riichi/internal/models"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
-	"github.com/riichi-mahjong-dev/backend-riichi/internal/models"
 )
 
 type PlayerService struct {
@@ -48,9 +49,9 @@ func (s *PlayerService) GetPlayerByID(id uint64) (*models.Player, error) {
 	return &player, nil
 }
 
-func (s *PlayerService) GetAllPlayers(limit, offset int) ([]models.Player, error) {
+func (s *PlayerService) GetAllPlayers(queryPaginate commons.QueryPagination) ([]models.Player, error) {
 	var players []models.Player
-	err := s.GetAllWithPreload(&players, limit, offset, "Province")
+	err := s.GetAllWithPreload(&players, queryPaginate, "Province")
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +59,7 @@ func (s *PlayerService) GetAllPlayers(limit, offset int) ([]models.Player, error
 }
 
 func (s *PlayerService) UpdatePlayer(id uint64, req *models.PlayerRequest) (*models.Player, error) {
-	updates := map[string]interface{}{
+	updates := map[string]any{
 		"province_id": req.ProvinceID,
 		"rank":        req.Rank,
 		"name":        req.Name,

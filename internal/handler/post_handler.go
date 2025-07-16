@@ -46,8 +46,9 @@ func (h *PostHandler) GetPostByID(c *fiber.Ctx) error {
 }
 
 func (h *PostHandler) GetAllPosts(c *fiber.Ctx) error {
-	limit, offset := h.GetPaginationParams(c)
-	posts, err := h.PostService.GetAllPosts(limit, offset)
+	queryPaginate := h.GetPaginationParams(c)
+
+	posts, err := h.PostService.GetAllPosts(queryPaginate.Limit, queryPaginate.Offset)
 	if err != nil {
 		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to retrieve posts", err)
 	}
@@ -58,7 +59,7 @@ func (h *PostHandler) GetAllPosts(c *fiber.Ctx) error {
 		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to count posts", err)
 	}
 
-	meta := h.CalculatePaginationMeta(int(c.QueryInt("page", 1)), limit, total)
+	meta := h.CalculatePaginationMeta(int(c.QueryInt("page", 1)), queryPaginate.Limit, total)
 	return h.PaginatedSuccessResponse(c, "Posts retrieved successfully", posts, meta)
 }
 

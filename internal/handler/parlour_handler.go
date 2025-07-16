@@ -46,8 +46,9 @@ func (h *ParlourHandler) GetParlourByID(c *fiber.Ctx) error {
 }
 
 func (h *ParlourHandler) GetAllParlours(c *fiber.Ctx) error {
-	limit, offset := h.GetPaginationParams(c)
-	parlours, err := h.ParlourService.GetAllParlours(limit, offset)
+	queryPaginate := h.GetPaginationParams(c)
+
+	parlours, err := h.ParlourService.GetAllParlours(queryPaginate)
 	if err != nil {
 		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to retrieve parlours", err)
 	}
@@ -58,7 +59,7 @@ func (h *ParlourHandler) GetAllParlours(c *fiber.Ctx) error {
 		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to count parlours", err)
 	}
 
-	meta := h.CalculatePaginationMeta(int(c.QueryInt("page", 1)), limit, total)
+	meta := h.CalculatePaginationMeta(int(c.QueryInt("page", 1)), queryPaginate.Limit, total)
 	return h.PaginatedSuccessResponse(c, "Parlours retrieved successfully", parlours, meta)
 }
 

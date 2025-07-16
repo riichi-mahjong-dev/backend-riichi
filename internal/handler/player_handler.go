@@ -46,8 +46,9 @@ func (h *PlayerHandler) GetPlayerByID(c *fiber.Ctx) error {
 }
 
 func (h *PlayerHandler) GetAllPlayers(c *fiber.Ctx) error {
-	limit, offset := h.GetPaginationParams(c)
-	players, err := h.PlayerService.GetAllPlayers(limit, offset)
+	queryPaginate := h.GetPaginationParams(c)
+
+	players, err := h.PlayerService.GetAllPlayers(queryPaginate)
 	if err != nil {
 		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to retrieve players", err)
 	}
@@ -58,7 +59,7 @@ func (h *PlayerHandler) GetAllPlayers(c *fiber.Ctx) error {
 		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to count players", err)
 	}
 
-	meta := h.CalculatePaginationMeta(int(c.QueryInt("page", 1)), limit, total)
+	meta := h.CalculatePaginationMeta(int(c.QueryInt("page", 1)), queryPaginate.Limit, total)
 	return h.PaginatedSuccessResponse(c, "Players retrieved successfully", players, meta)
 }
 

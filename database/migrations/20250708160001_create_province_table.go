@@ -14,8 +14,8 @@ func upCreateProvinceTable(tx *sql.Tx) error {
 			CREATE TABLE provinces (
 				id BIGINT NOT NULL AUTO_INCREMENT,
 				name VARCHAR(255) NOT NULL,
-				created_at TIMESTAMP,
-				updated_at TIMESTAMP,
+				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 				PRIMARY KEY (id)
 			);
 		`)

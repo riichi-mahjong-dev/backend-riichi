@@ -17,7 +17,10 @@ func upCreateParlourTable(tx *sql.Tx) error {
 				country VARCHAR(255) NOT NULL,
 				province_id BIGINT NOT NULL,
 				address TEXT,
-				PRIMARY KEY (id)
+				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+				PRIMARY KEY (id),
+				FOREIGN KEY (province_id) REFERENCES provinces(id) ON DELETE CASCADE ON UPDATE CASCADE
 			);
 		`)
 	return err

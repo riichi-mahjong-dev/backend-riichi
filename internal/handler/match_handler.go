@@ -47,6 +47,7 @@ func (h *MatchHandler) GetMatchByID(c *fiber.Ctx) error {
 
 func (h *MatchHandler) GetAllMatches(c *fiber.Ctx) error {
 	queryPaginate := h.GetPaginationParams(c)
+
 	matches, err := h.MatchService.GetAllMatches(queryPaginate)
 	if err != nil {
 		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to retrieve matches", err)

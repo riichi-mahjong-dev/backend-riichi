@@ -46,8 +46,9 @@ func (h *RoleHandler) GetRoleByID(c *fiber.Ctx) error {
 }
 
 func (h *RoleHandler) GetAllRoles(c *fiber.Ctx) error {
-	limit, offset := h.GetPaginationParams(c)
-	roles, err := h.RoleService.GetAllRoles(limit, offset)
+	queryPaginate := h.GetPaginationParams(c)
+
+	roles, err := h.RoleService.GetAllRoles(queryPaginate.Limit, queryPaginate.Offset)
 	if err != nil {
 		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to retrieve roles", err)
 	}
@@ -58,7 +59,7 @@ func (h *RoleHandler) GetAllRoles(c *fiber.Ctx) error {
 		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to count roles", err)
 	}
 
-	meta := h.CalculatePaginationMeta(int(c.QueryInt("page", 1)), limit, total)
+	meta := h.CalculatePaginationMeta(int(c.QueryInt("page", 1)), queryPaginate.Limit, total)
 	return h.PaginatedSuccessResponse(c, "Roles retrieved successfully", roles, meta)
 }
 

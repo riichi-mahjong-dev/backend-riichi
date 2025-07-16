@@ -16,9 +16,10 @@ func upCreatePostTable(tx *sql.Tx) error {
 				title VARCHAR(255) NOT NULL,
 				content TEXT NOT NULL,
 				created_by BIGINT NOT NULL,
-				created_at TIMESTAMP,
-				updated_at TIMESTAMP,
-				PRIMARY KEY (id)
+				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+				PRIMARY KEY (id),
+				FOREIGN KEY (created_by) REFERENCES admins(id) ON DELETE CASCADE ON UPDATE CASCADE
 			);
 		`)
 	return err

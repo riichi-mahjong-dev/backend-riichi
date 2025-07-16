@@ -1,7 +1,7 @@
 package services
 
 import (
-	"github.com/riichi-mahjong-dev/backend-riichi/internal/handler"
+	"github.com/riichi-mahjong-dev/backend-riichi/commons"
 	"gorm.io/gorm"
 )
 
@@ -45,7 +45,7 @@ func (s *BaseService) GetWithPreload(model any, id uint64, preloads ...string) e
 	return query.First(model, id).Error
 }
 
-func (s *BaseService) GetAllWithPreload(models any, queryPaginate handler.QueryPagination, preloads ...string) error {
+func (s *BaseService) GetAllWithPreload(models any, queryPaginate commons.QueryPagination, preloads ...string) error {
 	query := s.DB
 	for _, preload := range preloads {
 		query = query.Preload(preload)

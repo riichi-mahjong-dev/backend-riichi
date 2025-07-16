@@ -15,8 +15,8 @@ func upCreateAdminTable(tx *sql.Tx) error {
 				id BIGINT NOT NULL AUTO_INCREMENT,
 				username VARCHAR(255) NOT NULL,
 				password VARCHAR(36) NOT NULL,
-				created_at TIMESTAMP,
-				updated_at TIMESTAMP,
+				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 				PRIMARY KEY (id)
 			);
 		`)

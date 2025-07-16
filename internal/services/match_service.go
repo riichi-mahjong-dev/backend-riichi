@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/riichi-mahjong-dev/backend-riichi/internal/handler"
+	"github.com/riichi-mahjong-dev/backend-riichi/commons"
 	"github.com/riichi-mahjong-dev/backend-riichi/internal/models"
 	"gorm.io/gorm"
 )
@@ -62,10 +62,10 @@ func (s *MatchService) GetMatchByID(id uint64) (*models.Match, error) {
 	return &match, nil
 }
 
-func (s *MatchService) GetAllMatches(queryPaginate handler.QueryPagination) ([]models.Match, error) {
+func (s *MatchService) GetAllMatches(queryPaginate commons.QueryPagination) ([]models.Match, error) {
 	var matches []models.Match
 	preloads := []string{"Player1", "Player2", "Player3", "Player4", "Parlour", "Parlour.Province"}
-	err := s.GetAllWithPreload(&matches, limit, offset, preloads...)
+	err := s.GetAllWithPreload(&matches, queryPaginate, preloads...)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func (s *MatchService) UpdateMatch(id uint64, req *models.MatchRequest) (*models
 	match.Player2ID = req.Player2ID
 	match.Player3ID = req.Player3ID
 	match.Player4ID = req.Player4ID
-	match.ParlourID = req.
+	match.ParlourID = req.ParlourID
 
 	return match, nil
 }
@@ -137,7 +137,7 @@ func (s *MatchService) ApproveMatch(id uint64, approvedBy uint64) (*models.Match
 	return match, nil
 }
 
-func (s *MatchService) GetMatchesByParlour(parlourID uint64, queryPaginate handler.QueryPagination) ([]models.Match, error) {
+func (s *MatchService) GetMatchesByParlour(parlourID uint64, queryPaginate commons.QueryPagination) ([]models.Match, error) {
 	var matches []models.Match
 	query := s.DB.Where("parlour_id = ?", parlourID)
 	preloads := []string{"Player1", "Player2", "Player3", "Player4", "Parlour", "Parlour.Province"}

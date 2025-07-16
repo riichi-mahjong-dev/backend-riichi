@@ -1,8 +1,9 @@
 package services
 
 import (
-	"gorm.io/gorm"
+	"github.com/riichi-mahjong-dev/backend-riichi/commons"
 	"github.com/riichi-mahjong-dev/backend-riichi/internal/models"
+	"gorm.io/gorm"
 )
 
 type ParlourService struct {
@@ -39,9 +40,9 @@ func (s *ParlourService) GetParlourByID(id uint64) (*models.Parlour, error) {
 	return &parlour, nil
 }
 
-func (s *ParlourService) GetAllParlours(limit, offset int) ([]models.Parlour, error) {
+func (s *ParlourService) GetAllParlours(queryPaginate commons.QueryPagination) ([]models.Parlour, error) {
 	var parlours []models.Parlour
-	err := s.GetAllWithPreload(&parlours, limit, offset, "Province")
+	err := s.GetAllWithPreload(&parlours, queryPaginate, "Province")
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +50,7 @@ func (s *ParlourService) GetAllParlours(limit, offset int) ([]models.Parlour, er
 }
 
 func (s *ParlourService) UpdateParlour(id uint64, req *models.ParlourRequest) (*models.Parlour, error) {
-	updates := map[string]interface{}{
+	updates := map[string]any{
 		"name":        req.Name,
 		"country":     req.Country,
 		"province_id": req.ProvinceID,

@@ -13,21 +13,16 @@ func upCreateMatchTable(tx *sql.Tx) error {
 	_, err := tx.Exec(`
 			CREATE TABLE matches (
 				id BIGINT NOT NULL AUTO_INCREMENT,
-				player_1_id BIGINT,
-				player_2_id BIGINT,
-				player_3_id BIGINT,
-				player_4_id BIGINT,
-				player_1_score INT,
-				player_2_score INT,
-				player_3_score INT,
-				player_4_score INT,
 				parlour_id BIGINT NOT NULL,
 				created_by BIGINT NOT NULL,
 				approved_by BIGINT,
 				approved_at TIMESTAMP,
-				created_at TIMESTAMP,
-				updated_at TIMESTAMP,
-				PRIMARY KEY (id)
+				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+				PRIMARY KEY (id),
+				FOREIGN KEY (parlour_id) REFERENCES parlours(id) ON DELETE CASCADE ON UPDATE CASCADE,
+				FOREIGN KEY (created_by) REFERENCES players(id) ON DELETE CASCADE ON UPDATE CASCADE,
+				FOREIGN KEY (approved_by) REFERENCES admins(id) ON DELETE CASCADE ON UPDATE CASCADE
 			);
 		`)
 	return err
