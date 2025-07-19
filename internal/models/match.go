@@ -5,7 +5,7 @@ import "time"
 type Match struct {
 	ApprovedBy *uint64    `json:"approved_by"`
 	ApprovedAt *time.Time `json:"approved_at"`
-	Approver   *Admin     `gorm:"foreignKey:approve_by" json:"approved_by,omitempty"`
+	Approver   *Admin     `gorm:"foreignKey:approved_by" json:"approved_by,omitempty"`
 	ID         uint64     `gorm:"primaryKey" json:"id"`
 	ParlourID  uint64     `gorm:"not null" json:"parlour_id" validate:"required"`
 	CreatedBy  uint64     `gorm:"not null" json:"created_by" validate:"required"`
@@ -19,17 +19,26 @@ type Match struct {
 }
 
 type PointMatchPlayer struct {
-	PlayerId *uint64 `json:"player_id"`
-	Score    *int    `json:"score"`
+	MatchPlayerId *uint64 `json:"match_player_id"`
+	Score         *int    `json:"score"`
 }
 
 type PlayerMatch struct {
 	Player *uint64 `json:"player"`
 }
 
+type UpdatePlayerMatch struct {
+	Player        *uint64 `json:"player"`
+	MatchPlayerID *uint64 `json:"match_player_id"`
+}
+
+type UpdateMatchRequest struct {
+	ParlourID uint64              `json:"parlour_id" validate:"required"`
+	Players   []UpdatePlayerMatch `json:"players"`
+}
+
 type MatchRequest struct {
 	ParlourID uint64        `json:"parlour_id" validate:"required"`
-	CreatedBy uint64        `json:"created_by" validate:"required"`
 	Players   []PlayerMatch `json:"players"`
 }
 
@@ -48,6 +57,5 @@ type MatchResponse struct {
 }
 
 type PointMatchRequest struct {
-	MatchID           uint64             `json:"match_id"`
 	PointMatchPlayers []PointMatchPlayer `json:"point_match_players"`
 }

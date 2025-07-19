@@ -23,7 +23,9 @@ func (h *MatchHandler) CreateMatch(c *fiber.Ctx) error {
 		return h.ErrorResponse(c, fiber.StatusBadRequest, "Invalid request", err)
 	}
 
-	match, err := h.MatchService.CreateMatch(&req)
+	userData := c.Locals("user").(*models.AuthUser)
+
+	match, err := h.MatchService.CreateMatch(&req, userData.ID)
 	if err != nil {
 		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to create match", err)
 	}
@@ -69,12 +71,14 @@ func (h *MatchHandler) UpdateMatch(c *fiber.Ctx) error {
 		return h.ErrorResponse(c, fiber.StatusBadRequest, "Invalid ID", err)
 	}
 
-	var req models.MatchRequest
+	var req models.UpdateMatchRequest
 	if err := c.BodyParser(&req); err != nil {
 		return h.ErrorResponse(c, fiber.StatusBadRequest, "Invalid request", err)
 	}
 
-	match, err := h.MatchService.UpdateMatch(id, &req)
+	userData := c.Locals("user").(*models.AuthUser)
+
+	match, err := h.MatchService.UpdateMatch(id, &req, userData.ID)
 	if err != nil {
 		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to update match", err)
 	}

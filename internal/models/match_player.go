@@ -13,6 +13,6 @@ type MatchPlayer struct {
 	UpdatedAt time.Time `json:"updated_at" gorm:"autoUpdateTime"`
 
 	// Relations
-	Match  Match  `gorm:"foreignKey:match_id" json:"match,omitempty"`
-	Player Player `gorm:"foreignKey:player_id" json:"player,omitempty"`
+	Match  Match  `gorm:"foreignKey:MatchID" json:"-"`
+	Player Player `gorm:"foreignKey:PlayerID" json:"player,omitempty"`
 }

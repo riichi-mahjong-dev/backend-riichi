@@ -51,9 +51,9 @@ func InitializeRoute(app *fiber.App, appConfig *commons.AppConfig) {
 	api.Get("/profile", authMiddleware.CheckAuthorization, authHandler.GetProfile)
 
 	// Player routes (guests can view, admins can manage)
-	api.Get("/players", playerHandler.GetAllPlayers)     // Public - guests can view
-	api.Get("/players/:id", playerHandler.GetPlayerByID) // Public - guests can view
-	api.Post("/players", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin", "super-admin"}) playerHandler.CreatePlayer)     // Public registration
+	api.Get("/players", playerHandler.GetAllPlayers)                                                                                                // Public - guests can view
+	api.Get("/players/:id", playerHandler.GetPlayerByID)                                                                                            // Public - guests can view
+	api.Post("/players", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin", "super-admin"}), playerHandler.CreatePlayer) // Public registration
 	api.Put("/players/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin", "super-admin"}), playerHandler.UpdatePlayer)
 	api.Delete("/players/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"super-admin"}), playerHandler.DeletePlayer)
 
@@ -88,10 +88,11 @@ func InitializeRoute(app *fiber.App, appConfig *commons.AppConfig) {
 	// Match routes (guests can view, players/admins can manage)
 	api.Get("/matches", matchHandler.GetAllMatches)    // Public - guests can view
 	api.Get("/matches/:id", matchHandler.GetMatchByID) // Public - guests can view
-	api.Post("/matches", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"player", "admin"}), matchHandler.CreateMatch)
-	api.Put("/matches/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"player", "admin"}), matchHandler.UpdateMatch)
+	api.Post("/matches", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"player"}), matchHandler.CreateMatch)
+	api.Put("/matches/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"player"}), matchHandler.UpdateMatch)
 	api.Delete("/matches/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), matchHandler.DeleteMatch)
 	api.Post("/matches/:id/approve", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), matchHandler.ApproveMatch)
+	api.Post("/matches/:id/point", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), matchHandler.PointMatch)
 
 	// Post routes (public view, admin modifications)
 	api.Get("/posts", postHandler.GetAllPosts)     // Public - guests can view

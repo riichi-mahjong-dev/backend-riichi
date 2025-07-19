@@ -19,7 +19,7 @@ type LoginResponse struct {
 	RefreshToken string    `json:"refresh_token"`
 	TokenType    string    `json:"token_type"`
 	ExpiresAt    time.Time `json:"expires_at"`
-	User         interface{} `json:"user"`
+	User         any       `json:"user"`
 }
 
 type RefreshTokenRequest struct {

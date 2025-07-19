@@ -9,6 +9,11 @@ type BaseService struct {
 	DB *gorm.DB
 }
 
+// Create a new instance with a transaction DB
+func (s *BaseService) WithTx(tx *gorm.DB) *BaseService {
+	return &BaseService{DB: tx}
+}
+
 // Generic CRUD operations
 func (s *BaseService) Create(model any) error {
 	return s.DB.Create(model).Error

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/riichi-mahjong-dev/backend-riichi/commons"
+	"github.com/riichi-mahjong-dev/backend-riichi/internal/jobs"
 	"github.com/riichi-mahjong-dev/backend-riichi/internal/models"
 	"gorm.io/gorm"
 )
@@ -19,32 +20,61 @@ func NewMatchService(db *gorm.DB) *MatchService {
 	}
 }
 
-func (s *MatchService) CreateMatch(req *models.MatchRequest) (*models.Match, error) {
+func (s *MatchService) CreateMatch(req *models.MatchRequest, userId uint64) (*models.Match, error) {
 	match := &models.Match{
-		Player1ID: req.Player1ID,
-		Player2ID: req.Player2ID,
-		Player3ID: req.Player3ID,
-		Player4ID: req.Player4ID,
 		ParlourID: req.ParlourID,
-		CreatedBy: req.CreatedBy,
+		CreatedBy: userId,
 	}
 
 	err := s.Create(match)
 	if err != nil {
 		return nil, err
 	}
+
+	matchPlayers := []models.MatchPlayer{}
+
+	for _, player := range req.Players {
+		matchPlayers = append(matchPlayers, models.MatchPlayer{
+			MatchID:  match.ID,
+			PlayerID: *player.Player,
+		})
+	}
+
+	err = s.Create(matchPlayers)
+
+	if err != nil {
+		return nil, err
+	}
+
+	match.Players = matchPlayers
+
 	return match, nil
 }
 
 func (s *MatchService) PointMatch(id uint64, req *models.PointMatchRequest) (*models.Match, error) {
-	updates := map[string]any{
-		"player_1_score": req.Player1Score,
-		"player_2_score": req.Player2Score,
-		"player_3_score": req.Player3Score,
-		"player_4_score": req.Player4Score,
-	}
+	err := s.DB.Transaction(func(tx *gorm.DB) error {
+		txService := s.WithTx(tx)
+		for _, pointMatch := range req.PointMatchPlayers {
+			updates := map[string]any{
+				"point": pointMatch.Score,
+			}
+			err := txService.Update(&models.MatchPlayer{}, *pointMatch.MatchPlayerId, updates)
+			if err != nil {
+				return err
+			}
+		}
 
-	err := s.Update(&models.Match{}, id, updates)
+		err := jobs.EnqueueJob(s.DB, "calculate_mmr", map[string]any{
+			"id": id,
+		})
+
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +84,7 @@ func (s *MatchService) PointMatch(id uint64, req *models.PointMatchRequest) (*mo
 
 func (s *MatchService) GetMatchByID(id uint64) (*models.Match, error) {
 	var match models.Match
-	preloads := []string{"Player1", "Player2", "Player3", "Player4", "Parlour", "Parlour.Province"}
+	preloads := []string{"Parlour", "Parlour.Province", "Players.Player", "Creator"}
 	err := s.GetWithPreload(&match, id, preloads...)
 	if err != nil {
 		return nil, err
@@ -64,7 +94,7 @@ func (s *MatchService) GetMatchByID(id uint64) (*models.Match, error) {
 
 func (s *MatchService) GetAllMatches(queryPaginate commons.QueryPagination) ([]models.Match, error) {
 	var matches []models.Match
-	preloads := []string{"Player1", "Player2", "Player3", "Player4", "Parlour", "Parlour.Province"}
+	preloads := []string{"Parlour", "Parlour.Province", "Players.Player", "Creator"}
 	err := s.GetAllWithPreload(&matches, queryPaginate, preloads...)
 	if err != nil {
 		return nil, err
@@ -72,11 +102,15 @@ func (s *MatchService) GetAllMatches(queryPaginate commons.QueryPagination) ([]m
 	return matches, nil
 }
 
-func (s *MatchService) UpdateMatch(id uint64, req *models.MatchRequest) (*models.Match, error) {
+func (s *MatchService) UpdateMatch(id uint64, req *models.UpdateMatchRequest, userId uint64) (*models.Match, error) {
 	match, err := s.GetMatchByID(id)
 
 	if err != nil {
 		return nil, err
+	}
+
+	if match.CreatedBy != userId {
+		return nil, fmt.Errorf("cannot update match, you are not the creator of this match")
 	}
 
 	if match.ApprovedAt != nil || match.ApprovedBy != nil {
@@ -84,11 +118,7 @@ func (s *MatchService) UpdateMatch(id uint64, req *models.MatchRequest) (*models
 	}
 
 	updates := map[string]any{
-		"player_1_id": req.Player1ID,
-		"player_2_id": req.Player2ID,
-		"player_3_id": req.Player3ID,
-		"player_4_id": req.Player4ID,
-		"parlour_id":  req.ParlourID,
+		"parlour_id": req.ParlourID,
 	}
 
 	err = s.Update(&models.Match{}, id, updates)
@@ -96,11 +126,35 @@ func (s *MatchService) UpdateMatch(id uint64, req *models.MatchRequest) (*models
 		return nil, err
 	}
 
-	match.Player1ID = req.Player1ID
-	match.Player2ID = req.Player2ID
-	match.Player3ID = req.Player3ID
-	match.Player4ID = req.Player4ID
-	match.ParlourID = req.ParlourID
+	for _, player := range req.Players {
+		if player.MatchPlayerID != nil {
+			playerUpdate := map[string]any{
+				"player_id": player.Player,
+			}
+
+			err = s.Update(&models.MatchPlayer{}, *player.MatchPlayerID, playerUpdate)
+
+			if err != nil {
+				return nil, err
+			}
+			continue
+		}
+
+		err = s.Create(&models.MatchPlayer{
+			MatchID:  id,
+			PlayerID: *player.Player,
+		})
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	match, err = s.GetMatchByID(id)
+
+	if err != nil {
+		return nil, err
+	}
 
 	return match, nil
 }
@@ -140,7 +194,7 @@ func (s *MatchService) ApproveMatch(id uint64, approvedBy uint64) (*models.Match
 func (s *MatchService) GetMatchesByParlour(parlourID uint64, queryPaginate commons.QueryPagination) ([]models.Match, error) {
 	var matches []models.Match
 	query := s.DB.Where("parlour_id = ?", parlourID)
-	preloads := []string{"Player1", "Player2", "Player3", "Player4", "Parlour", "Parlour.Province"}
+	preloads := []string{"Parlour", "Parlour.Province"}
 	for _, preload := range preloads {
 		query = query.Preload(preload)
 	}
@@ -155,4 +209,14 @@ func (s *MatchService) GetMatchesByParlour(parlourID uint64, queryPaginate commo
 		return nil, err
 	}
 	return matches, nil
+}
+
+func (s *MatchService) getAverageRank(pointMatchPlayers []models.PointMatchPlayer) float64 {
+	var sum float64
+
+	for _, player := range pointMatchPlayers {
+		sum += float64(*player.Score)
+	}
+
+	return sum / float64(len(pointMatchPlayers))
 }
