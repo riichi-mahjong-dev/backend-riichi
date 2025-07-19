@@ -1,8 +1,8 @@
 package services
 
 import (
-	"gorm.io/gorm"
 	"github.com/riichi-mahjong-dev/backend-riichi/internal/models"
+	"gorm.io/gorm"
 )
 
 type RoleService struct {
@@ -47,7 +47,7 @@ func (s *RoleService) GetAllRoles(limit, offset int) ([]models.Role, error) {
 }
 
 func (s *RoleService) UpdateRole(id uint64, req *models.RoleRequest) (*models.Role, error) {
-	updates := map[string]interface{}{
+	updates := map[string]any{
 		"name":       req.Name,
 		"guard_name": req.GuardName,
 	}

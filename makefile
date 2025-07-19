@@ -22,17 +22,17 @@ build: $(APP_BIN) $(MIGRATE_BIN) $(SEEDER_BIN)
 #BUILD APP backend
 $(APP_BIN): $(APP)/*.go
 	@mkdir -p $(BIN_DIR)
-	$(GO) build -tags=release -ldflags="$(LDFLAGS)" -o $@ $<
+	$(GO) build -tags=release -ldflags="$(LDFLAGS)" -trimpath -o $@ $<
 	
 #BUILD migrate
 $(MIGRATE_BIN): $(MIGRATE)/*.go
 	@mkdir -p $(BIN_DIR)
-	$(GO) build -tags=release -ldflags="$(LDFLAGS)" -o $@ $<
+	$(GO) build -tags=release -ldflags="$(LDFLAGS)" -trimpath -o $@ $<
 	
 #BUILD seeders
 $(SEEDER_BIN): $(SEEDER)/*.go
 	@mkdir -p $(BIN_DIR)
-	$(GO) build -tags=release -ldflags="$(LDFLAGS)" -o $@ $<
+	$(GO) build -tags=release -ldflags="$(LDFLAGS)" -trimpath -o $@ $<
 
 .PHONY: clean
 clean:

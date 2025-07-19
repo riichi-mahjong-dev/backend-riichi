@@ -1,8 +1,8 @@
 package services
 
 import (
-	"gorm.io/gorm"
 	"github.com/riichi-mahjong-dev/backend-riichi/internal/models"
+	"gorm.io/gorm"
 )
 
 type PostService struct {
@@ -48,7 +48,7 @@ func (s *PostService) GetAllPosts(limit, offset int) ([]models.Post, error) {
 }
 
 func (s *PostService) UpdatePost(id uint64, req *models.PostRequest) (*models.Post, error) {
-	updates := map[string]interface{}{
+	updates := map[string]any{
 		"title":      req.Title,
 		"content":    req.Content,
 		"created_by": req.CreatedBy,

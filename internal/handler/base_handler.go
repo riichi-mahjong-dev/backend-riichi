@@ -34,6 +34,13 @@ type PaginatedResponse struct {
 	Meta    *PaginationMeta `json:"meta"`
 }
 
+type QueryParams struct {
+	Page     int               `form:"page" query:"page"`
+	PageSize int               `form:"pageSize" query:"pageSize"`
+	Search   string            `form:"search" query:"search"`
+	Filters  map[string]string // Custom filters, e.g., age, status
+}
+
 // Helper functions
 func (h *BaseHandler) SuccessResponse(c *fiber.Ctx, message string, data any) error {
 	return c.Status(200).JSON(Response{
@@ -120,5 +127,26 @@ func (h *BaseHandler) CalculatePaginationMeta(page, limit int, total int64) *Pag
 		PerPage:     limit,
 		Total:       total,
 		TotalPages:  totalPages,
+	}
+}
+
+func ParseQueryParams(c *fiber.Ctx, filtersAllowed []string) QueryParams {
+	page := c.QueryInt("page", 1)
+	pageSize := c.QueryInt("pageSize", 10)
+	search := c.Query("search", "")
+	filters := make(map[string]string)
+
+	for _, filterAllowed := range filtersAllowed {
+		filterValue := c.Query("filter["+filterAllowed+"]", "")
+		if filterValue != "" {
+			filters[filterAllowed] = filterValue
+		}
+	}
+
+	return QueryParams{
+		Page:     page,
+		PageSize: pageSize,
+		Search:   search,
+		Filters:  filters,
 	}
 }

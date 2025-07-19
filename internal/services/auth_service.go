@@ -159,7 +159,7 @@ func (s *AuthService) ValidateToken(tokenString string) (*models.TokenClaims, er
 
 func (s *AuthService) generateTokens(claims *models.TokenClaims) (string, string, time.Time, error) {
 	now := time.Now()
-	accessExpiry := now.Add(24 * time.Hour)  // 24 hours
+	accessExpiry := now.Add(24 * time.Hour)      // 24 hours
 	refreshExpiry := now.Add(7 * 24 * time.Hour) // 7 days
 
 	// Create access token
@@ -200,7 +200,7 @@ func (s *AuthService) generateTokens(claims *models.TokenClaims) (string, string
 }
 
 func (s *AuthService) validateToken(tokenString string) (*models.TokenClaims, error) {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")
 		}

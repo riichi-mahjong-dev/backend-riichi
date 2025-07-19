@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"fmt"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/riichi-mahjong-dev/backend-riichi/internal/models"
 	"github.com/riichi-mahjong-dev/backend-riichi/internal/services"
@@ -23,9 +25,13 @@ func (h *MatchHandler) CreateMatch(c *fiber.Ctx) error {
 		return h.ErrorResponse(c, fiber.StatusBadRequest, "Invalid request", err)
 	}
 
+	if len(req.Players) != 4 {
+		return h.ErrorResponse(c, fiber.StatusBadRequest, "Invalid request", fmt.Errorf("match must have 4 players"))
+	}
+
 	userData := c.Locals("user").(*models.AuthUser)
 
-	match, err := h.MatchService.CreateMatch(&req, userData.ID)
+	match, err := h.MatchService.CreateMatch(&req, userData.ID, userData.Role)
 	if err != nil {
 		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to create match", err)
 	}
@@ -65,6 +71,24 @@ func (h *MatchHandler) GetAllMatches(c *fiber.Ctx) error {
 	return h.PaginatedSuccessResponse(c, "Matches retrieved successfully", matches, meta)
 }
 
+func (h *MatchHandler) GetAllAdminMatches(c *fiber.Ctx) error {
+	queryPaginate := h.GetPaginationParams(c)
+
+	matches, err := h.MatchService.GetAllMatches(queryPaginate)
+	if err != nil {
+		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to retrieve matches", err)
+	}
+
+	// Count total matches for pagination
+	total, err := h.MatchService.Count(&models.Match{})
+	if err != nil {
+		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to count matches", err)
+	}
+
+	meta := h.CalculatePaginationMeta(int(c.QueryInt("page", 1)), queryPaginate.Limit, total)
+	return h.PaginatedSuccessResponse(c, "Matches retrieved successfully", matches, meta)
+}
+
 func (h *MatchHandler) UpdateMatch(c *fiber.Ctx) error {
 	id, err := h.GetIDParam(c)
 	if err != nil {
@@ -78,7 +102,7 @@ func (h *MatchHandler) UpdateMatch(c *fiber.Ctx) error {
 
 	userData := c.Locals("user").(*models.AuthUser)
 
-	match, err := h.MatchService.UpdateMatch(id, &req, userData.ID)
+	match, err := h.MatchService.UpdateMatch(id, &req, userData.ID, userData.Role)
 	if err != nil {
 		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to update match", err)
 	}
@@ -106,15 +130,9 @@ func (h *MatchHandler) ApproveMatch(c *fiber.Ctx) error {
 		return h.ErrorResponse(c, fiber.StatusBadRequest, "Invalid ID", err)
 	}
 
-	// Get approver ID from request or context
-	var approverReq struct {
-		ApprovedBy uint64 `json:"approved_by" validate:"required"`
-	}
-	if err := c.BodyParser(&approverReq); err != nil {
-		return h.ErrorResponse(c, fiber.StatusBadRequest, "Invalid request", err)
-	}
+	userData := c.Locals("user").(*models.AuthUser)
 
-	match, err := h.MatchService.ApproveMatch(id, approverReq.ApprovedBy)
+	match, err := h.MatchService.ApproveMatch(id, userData.ID)
 	if err != nil {
 		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to approve match", err)
 	}
@@ -133,7 +151,9 @@ func (h *MatchHandler) PointMatch(c *fiber.Ctx) error {
 		return h.ErrorResponse(c, fiber.StatusBadRequest, "Invalid request", err)
 	}
 
-	match, err := h.MatchService.PointMatch(id, &req)
+	userData := c.Locals("user").(*models.AuthUser)
+
+	match, err := h.MatchService.PointMatch(id, &req, userData.ID)
 	if err != nil {
 		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to save point match", err)
 	}

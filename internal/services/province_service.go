@@ -1,8 +1,8 @@
 package services
 
 import (
-	"gorm.io/gorm"
 	"github.com/riichi-mahjong-dev/backend-riichi/internal/models"
+	"gorm.io/gorm"
 )
 
 type ProvinceService struct {
@@ -46,7 +46,7 @@ func (s *ProvinceService) GetAllProvinces(limit, offset int) ([]models.Province,
 }
 
 func (s *ProvinceService) UpdateProvince(id uint64, req *models.ProvinceRequest) (*models.Province, error) {
-	updates := map[string]interface{}{
+	updates := map[string]any{
 		"name": req.Name,
 	}
 

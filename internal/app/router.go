@@ -88,18 +88,18 @@ func InitializeRoute(app *fiber.App, appConfig *commons.AppConfig) {
 	// Match routes (guests can view, players/admins can manage)
 	api.Get("/matches", matchHandler.GetAllMatches)    // Public - guests can view
 	api.Get("/matches/:id", matchHandler.GetMatchByID) // Public - guests can view
-	api.Post("/matches", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"player"}), matchHandler.CreateMatch)
-	api.Put("/matches/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"player"}), matchHandler.UpdateMatch)
-	api.Delete("/matches/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), matchHandler.DeleteMatch)
-	api.Post("/matches/:id/approve", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), matchHandler.ApproveMatch)
-	api.Post("/matches/:id/point", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), matchHandler.PointMatch)
+	api.Post("/matches", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"player", "admin", "super-admin"}), matchHandler.CreateMatch)
+	api.Put("/matches/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"player", "admin", "super-admin"}), matchHandler.UpdateMatch)
+	api.Delete("/matches/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin", "super-admin"}), matchHandler.DeleteMatch)
+	api.Post("/matches/:id/approve", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin", "super-admin"}), matchHandler.ApproveMatch)
+	api.Post("/matches/:id/point", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin", "super-admin"}), matchHandler.PointMatch)
 
 	// Post routes (public view, admin modifications)
 	api.Get("/posts", postHandler.GetAllPosts)     // Public - guests can view
 	api.Get("/posts/:id", postHandler.GetPostByID) // Public - guests can view
-	api.Post("/posts", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), postHandler.CreatePost)
-	api.Put("/posts/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), postHandler.UpdatePost)
-	api.Delete("/posts/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), postHandler.DeletePost)
+	api.Post("/posts", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin", "super-admin"}), postHandler.CreatePost)
+	api.Put("/posts/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin", "super-admin"}), postHandler.UpdatePost)
+	api.Delete("/posts/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin", "super-admin"}), postHandler.DeletePost)
 
 	// Health check endpoint
 	api.Get("/health", func(c *fiber.Ctx) error {

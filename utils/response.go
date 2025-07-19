@@ -3,16 +3,16 @@ package utils
 import "github.com/gofiber/fiber/v2"
 
 type ResponseTemplate struct {
-	Code    int         `json:"code"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	Data    any    `json:"data"`
 }
 
 type ResponseErrorTemplate struct {
 	Error string `json:"error"`
 }
 
-func ResponseSuccess(code int, message string, data interface{}) func(c *fiber.Ctx) error {
+func ResponseSuccess(code int, message string, data any) func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		return c.Status(code).JSON(ResponseTemplate{
 			Code:    code,

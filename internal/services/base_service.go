@@ -75,3 +75,55 @@ func (s *BaseService) Exists(model any, id uint64) (bool, error) {
 	err := s.DB.Model(model).Where("id = ?", id).Count(&count).Error
 	return count > 0, err
 }
+
+func (s *BaseService) Paginate[T any](
+	db *gorm.DB,
+	model T,
+	filters map[string]interface{},
+	searchFields []string,
+	searchTerm string,
+	page int,
+	pageSize int,
+) ([]T, int64, error) {
+	var results []T
+	var total int64
+
+	// Default pagination
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 {
+		pageSize = 10
+	}
+	offset := (page - 1) * pageSize
+
+	query := db.Model(model)
+
+	// Apply filters
+	for field, value := range filters {
+		query = query.Where(fmt.Sprintf("%s = ?", field), value)
+	}
+
+	// Apply search
+	if searchTerm != "" && len(searchFields) > 0 {
+		var conditions []string
+		var args []interface{}
+		for _, field := range searchFields {
+			conditions = append(conditions, fmt.Sprintf("%s LIKE ?", field))
+			args = append(args, "%"+searchTerm+"%")
+		}
+		query = query.Where(strings.Join(conditions, " OR "), args...)
+	}
+
+	// Count total records
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// Apply pagination
+	if err := query.Limit(pageSize).Offset(offset).Find(&results).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return results, total, nil
+}

@@ -8,14 +8,14 @@ type Match struct {
 	Approver   *Admin     `gorm:"foreignKey:approved_by" json:"approved_by,omitempty"`
 	ID         uint64     `gorm:"primaryKey" json:"id"`
 	ParlourID  uint64     `gorm:"not null" json:"parlour_id" validate:"required"`
-	CreatedBy  uint64     `gorm:"not null" json:"created_by" validate:"required"`
+	CreatedBy  *uint64    `json:"created_by"`
 	CreatedAt  time.Time  `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt  time.Time  `json:"updated_at" gorm:"autoUpdateTime"`
 
 	// Relations
 	Players []MatchPlayer `gorm:"foreignKey:match_id"`
 	Parlour Parlour       `gorm:"foreignKey:parlour_id" json:"parlour,omitempty"`
-	Creator Player        `gorm:"foreignKey:created_by" json:"creator,omitempty"`
+	Creator *Player       `gorm:"foreignKey:created_by" json:"creator,omitempty"`
 }
 
 type PointMatchPlayer struct {
@@ -53,7 +53,7 @@ type MatchResponse struct {
 	CreatedAt    time.Time        `json:"created_at"`
 	UpdatedAt    time.Time        `json:"updated_at"`
 	MatchPlayers []MatchPlayer    `json:"match_players"`
-	Creator      Player           `json:"creator"`
+	Creator      *Player          `json:"creator_player"`
 }
 
 type PointMatchRequest struct {
