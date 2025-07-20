@@ -16,7 +16,9 @@ type MatchService struct {
 
 func NewMatchService(db *gorm.DB) *MatchService {
 	return &MatchService{
-		BaseService: BaseService{DB: db},
+		BaseService: BaseService{
+			DB: db,
+		},
 	}
 }
 
@@ -52,8 +54,6 @@ func (s *MatchService) CreateMatch(req *models.MatchRequest, userId uint64, role
 	if err != nil {
 		return nil, err
 	}
-
-	match.Players = matchPlayers
 
 	return match, nil
 }
@@ -109,14 +109,28 @@ func (s *MatchService) GetMatchByID(id uint64) (*models.Match, error) {
 	return &match, nil
 }
 
-func (s *MatchService) GetAllMatches(queryPaginate commons.QueryPagination) ([]models.Match, error) {
-	var matches []models.Match
-	preloads := []string{"Parlour", "Parlour.Province", "Players.Player", "Creator"}
-	err := s.GetAllWithPreload(&matches, queryPaginate, preloads...)
-	if err != nil {
-		return nil, err
-	}
-	return matches, nil
+func (s *MatchService) GetAllMatches(queryPaginate commons.QueryParams) ([]models.Match, int64, error) {
+	preloads := []string{"Parlour", "Creator", "Players"}
+	return Paginate(
+		s.DB.Distinct("matches.id, matches.parlour_id, matches.created_by, matches.created_at, matches.updated_at, matches.approved_by, matches.approved_at"),
+		models.Match{},
+		[]string{
+			"LEFT JOIN match_players ON match_players.match_id = matches.id",
+			"LEFT JOIN players ON players.id = match_players.player_id",
+			"LEFT JOIN parlours ON parlours.id = matches.parlour_id",
+		},
+		queryPaginate.Filters,
+		preloads,
+		[]string{
+			"players.name",
+			"parlours.name",
+		},
+		queryPaginate.Search,
+		queryPaginate.Page,
+		queryPaginate.PageSize,
+		queryPaginate.OrderBy,
+		queryPaginate.Order,
+	)
 }
 
 func (s *MatchService) UpdateMatch(id uint64, req *models.UpdateMatchRequest, userId uint64, role string) (*models.Match, error) {
@@ -218,58 +232,28 @@ func (s *MatchService) ApproveMatch(id uint64, approvedBy uint64) (*models.Match
 	return match, nil
 }
 
-func (s *MatchService) GetAllMatchesByAdmin(queryPaginate commons.QueryPagination, userId uint64) ([]models.Match, error) {
-	var adminPermissions []models.AdminPermission
-	var parlourIds []uint64
-	err := s.DB.Where("admin_id = ?", userId).Find(adminPermissions).Error
-
-	for _, adminPermission := range adminPermissions {
-		parlourIds = append(parlourIds, adminPermission.ParlourID)
-	}
-
-	var matches []models.Match
-	preloads := []string{"Parlour", "Parlour.Province", "Players.Player", "Creator"}
-
-	query := s.DB
-
-	for _, preload := preloads {
-		query = query.Preload(preload)
-	}
-
-	if queryPaginate.Limit > 0 {
-		query = query.Limit(queryPaginate.Limit)
-	}
-	if queryPaginate.Offset > 0 {
-		query = query.Offset(queryPaginate.Offset)
-	}
-	
-	err = query.Where("parlour_id IN ?", parlourIds).Find(matches).Error
-
-	if err != nil {
-		return nil, err
-	}
-
-	return matches, nil
-}
-
-func (s *MatchService) GetMatchesByParlour(parlourID uint64, queryPaginate commons.QueryPagination) ([]models.Match, error) {
-	var matches []models.Match
-	query := s.DB.Where("parlour_id = ?", parlourID)
-	preloads := []string{"Parlour", "Parlour.Province"}
-	for _, preload := range preloads {
-		query = query.Preload(preload)
-	}
-	if queryPaginate.Limit > 0 {
-		query = query.Limit(queryPaginate.Limit)
-	}
-	if queryPaginate.Offset > 0 {
-		query = query.Offset(queryPaginate.Offset)
-	}
-	err := query.Find(&matches).Error
-	if err != nil {
-		return nil, err
-	}
-	return matches, nil
+func (s *MatchService) GetAllMatchesByAdmin(queryPaginate commons.QueryParams, userId uint64) ([]models.Match, int64, error) {
+	preloads := []string{"Parlour", "Creator"}
+	return Paginate(
+		s.DB.Distinct("matches.id, matches.parlour_id, matches.created_by, matches.created_at, matches.updated_at, matches.approved_by, matches.approved_at"),
+		models.Match{},
+		[]string{
+			"LEFT JOIN match_players ON match_players.match_id = matches.id",
+			"LEFT JOIN players ON players.id = match_players.player_id",
+			"LEFT JOIN parlours ON parlours.id = matches.parlour_id",
+		},
+		queryPaginate.Filters,
+		preloads,
+		[]string{
+			"players.name",
+			"parlours.name",
+		},
+		queryPaginate.Search,
+		queryPaginate.Page,
+		queryPaginate.PageSize,
+		queryPaginate.OrderBy,
+		queryPaginate.Order,
+	)
 }
 
 func (s *MatchService) checkAdminPermission(adminId uint64, provinceId uint64, parlourId uint64) error {

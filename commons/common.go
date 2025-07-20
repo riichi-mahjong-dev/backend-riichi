@@ -1,6 +1,9 @@
 package commons
 
 import (
+	"regexp"
+	"strings"
+
 	"github.com/riichi-mahjong-dev/backend-riichi/configs"
 	"github.com/riichi-mahjong-dev/backend-riichi/database"
 	"github.com/riichi-mahjong-dev/backend-riichi/utils"
@@ -12,14 +15,13 @@ type AppConfig struct {
 	Env    *configs.EnvConfig
 }
 
-type QueryPagination struct {
-	Search  string `json:"q"`
-	SortBy  string `json:"sortBy"`
-	Sort    string `json:"sort"`
-	Page    int    `json:"page"`
-	Limit   int    `json:"limit"`
-	Offset  int
-	Filters map[string]string `json:"filters"`
+type QueryParams struct {
+	Page     int
+	PageSize int
+	Search   string
+	OrderBy  string
+	Order    string
+	Filters  map[string]any // Custom filters, e.g., age, status
 }
 
 // type PaginationParams struct {
@@ -43,3 +45,13 @@ type QueryPagination struct {
 // 		paginationParams.SortBy = sortBy
 // 	}
 // }
+
+func toSnakeCasePlural(name string) string {
+	// Convert CamelCase to snake_case
+	re := regexp.MustCompile("([a-z0-9])([A-Z])")
+	snake := re.ReplaceAllString(name, "${1}_${2}")
+	snake = strings.ToLower(snake)
+
+	// Naive pluralization: just add 's'
+	return snake + "s"
+}

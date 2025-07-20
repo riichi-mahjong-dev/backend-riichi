@@ -46,20 +46,14 @@ func (h *ProvinceHandler) GetProvinceByID(c *fiber.Ctx) error {
 }
 
 func (h *ProvinceHandler) GetAllProvinces(c *fiber.Ctx) error {
-	queryPaginate := h.GetPaginationParams(c)
+	queryPaginate := h.ParseQueryParams(c, nil)
 
-	provinces, err := h.ProvinceService.GetAllProvinces(queryPaginate.Limit, queryPaginate.Offset)
+	provinces, total, err := h.ProvinceService.GetAllProvinces(queryPaginate)
 	if err != nil {
 		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to retrieve provinces", err)
 	}
 
-	// Count total provinces for pagination
-	total, err := h.ProvinceService.Count(&models.Province{})
-	if err != nil {
-		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to count provinces", err)
-	}
-
-	meta := h.CalculatePaginationMeta(int(c.QueryInt("page", 1)), queryPaginate.Limit, total)
+	meta := h.CalculatePaginationMeta(int(c.QueryInt("page", 1)), queryPaginate.PageSize, total)
 	return h.PaginatedSuccessResponse(c, "Provinces retrieved successfully", provinces, meta)
 }
 

@@ -49,13 +49,25 @@ func (s *PlayerService) GetPlayerByID(id uint64) (*models.Player, error) {
 	return &player, nil
 }
 
-func (s *PlayerService) GetAllPlayers(queryPaginate commons.QueryPagination) ([]models.Player, error) {
-	var players []models.Player
-	err := s.GetAllWithPreload(&players, queryPaginate, "Province")
-	if err != nil {
-		return nil, err
-	}
-	return players, nil
+func (s *PlayerService) GetAllPlayers(queryPaginate commons.QueryParams) ([]models.Player, int64, error) {
+	return Paginate(
+		s.DB,
+		models.Player{},
+		[]string{
+			"JOIN provinces ON province.id = players.province_id",
+		},
+		queryPaginate.Filters,
+		[]string{"Province"},
+		[]string{
+			"players.name",
+			"provinces.name",
+		},
+		queryPaginate.Search,
+		queryPaginate.Page,
+		queryPaginate.PageSize,
+		queryPaginate.OrderBy,
+		queryPaginate.Order,
+	)
 }
 
 func (s *PlayerService) UpdatePlayer(id uint64, req *models.PlayerRequest) (*models.Player, error) {

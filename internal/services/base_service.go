@@ -1,7 +1,9 @@
 package services
 
 import (
-	"github.com/riichi-mahjong-dev/backend-riichi/commons"
+	"fmt"
+	"strings"
+
 	"gorm.io/gorm"
 )
 
@@ -50,20 +52,6 @@ func (s *BaseService) GetWithPreload(model any, id uint64, preloads ...string) e
 	return query.First(model, id).Error
 }
 
-func (s *BaseService) GetAllWithPreload(models any, queryPaginate commons.QueryPagination, preloads ...string) error {
-	query := s.DB
-	for _, preload := range preloads {
-		query = query.Preload(preload)
-	}
-	if queryPaginate.Limit > 0 {
-		query = query.Limit(queryPaginate.Limit)
-	}
-	if queryPaginate.Offset > 0 {
-		query = query.Offset(queryPaginate.Offset)
-	}
-	return query.Find(models).Error
-}
-
 func (s *BaseService) Count(model any) (int64, error) {
 	var count int64
 	err := s.DB.Model(model).Count(&count).Error
@@ -76,14 +64,18 @@ func (s *BaseService) Exists(model any, id uint64) (bool, error) {
 	return count > 0, err
 }
 
-func (s *BaseService) Paginate[T any](
+func Paginate[T any](
 	db *gorm.DB,
 	model T,
-	filters map[string]interface{},
+	joins []string,
+	filters map[string]any,
+	includes []string,
 	searchFields []string,
 	searchTerm string,
 	page int,
 	pageSize int,
+	orderBy string,
+	order string,
 ) ([]T, int64, error) {
 	var results []T
 	var total int64
@@ -99,21 +91,31 @@ func (s *BaseService) Paginate[T any](
 
 	query := db.Model(model)
 
+	for _, join := range joins {
+		query = query.Joins(join)
+	}
+
+	// Apply search
+	if searchTerm != "" && len(searchFields) > 0 {
+		var likeConditions []string
+		var likeArgs []any
+		for _, col := range searchFields {
+			likeConditions = append(likeConditions, fmt.Sprintf("%s ILIKE ?", col))
+			likeArgs = append(likeArgs, "%"+searchTerm+"%")
+		}
+		query = query.Where(strings.Join(likeConditions, " OR "), likeArgs...)
+	}
+
 	// Apply filters
 	for field, value := range filters {
 		query = query.Where(fmt.Sprintf("%s = ?", field), value)
 	}
 
-	// Apply search
-	if searchTerm != "" && len(searchFields) > 0 {
-		var conditions []string
-		var args []interface{}
-		for _, field := range searchFields {
-			conditions = append(conditions, fmt.Sprintf("%s LIKE ?", field))
-			args = append(args, "%"+searchTerm+"%")
-		}
-		query = query.Where(strings.Join(conditions, " OR "), args...)
+	for _, include := range includes {
+		query = query.Preload(include)
 	}
+
+	query = query.Order(orderBy + " " + order)
 
 	// Count total records
 	if err := query.Count(&total).Error; err != nil {

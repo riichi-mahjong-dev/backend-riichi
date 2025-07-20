@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/riichi-mahjong-dev/backend-riichi/commons"
 	"github.com/riichi-mahjong-dev/backend-riichi/internal/models"
 	"gorm.io/gorm"
 )
@@ -36,13 +37,20 @@ func (s *ProvinceService) GetProvinceByID(id uint64) (*models.Province, error) {
 	return &province, nil
 }
 
-func (s *ProvinceService) GetAllProvinces(limit, offset int) ([]models.Province, error) {
-	var provinces []models.Province
-	err := s.GetAll(&provinces, limit, offset)
-	if err != nil {
-		return nil, err
-	}
-	return provinces, nil
+func (s *ProvinceService) GetAllProvinces(queryPaginate commons.QueryParams) ([]models.Province, int64, error) {
+	return Paginate(
+		s.DB,
+		models.Province{},
+		[]string{},
+		queryPaginate.Filters,
+		[]string{},
+		[]string{"name"},
+		queryPaginate.Search,
+		queryPaginate.Page,
+		queryPaginate.PageSize,
+		queryPaginate.OrderBy,
+		queryPaginate.Order,
+	)
 }
 
 func (s *ProvinceService) UpdateProvince(id uint64, req *models.ProvinceRequest) (*models.Province, error) {

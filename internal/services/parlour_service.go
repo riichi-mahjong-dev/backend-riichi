@@ -40,13 +40,25 @@ func (s *ParlourService) GetParlourByID(id uint64) (*models.Parlour, error) {
 	return &parlour, nil
 }
 
-func (s *ParlourService) GetAllParlours(queryPaginate commons.QueryPagination) ([]models.Parlour, error) {
-	var parlours []models.Parlour
-	err := s.GetAllWithPreload(&parlours, queryPaginate, "Province")
-	if err != nil {
-		return nil, err
-	}
-	return parlours, nil
+func (s *ParlourService) GetAllParlours(queryPaginate commons.QueryParams) ([]models.Parlour, int64, error) {
+	return Paginate(
+		s.DB,
+		models.Parlour{},
+		[]string{
+			"JOIN provinces ON provinces.id = parlour.province_id",
+		},
+		queryPaginate.Filters,
+		[]string{"Province"},
+		[]string{
+			"provinces.name",
+			"parlour.name",
+		},
+		queryPaginate.Search,
+		queryPaginate.Page,
+		queryPaginate.PageSize,
+		queryPaginate.OrderBy,
+		queryPaginate.Order,
+	)
 }
 
 func (s *ParlourService) UpdateParlour(id uint64, req *models.ParlourRequest) (*models.Parlour, error) {

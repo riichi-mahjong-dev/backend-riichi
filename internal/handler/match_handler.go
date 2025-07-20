@@ -54,38 +54,26 @@ func (h *MatchHandler) GetMatchByID(c *fiber.Ctx) error {
 }
 
 func (h *MatchHandler) GetAllMatches(c *fiber.Ctx) error {
-	queryPaginate := h.GetPaginationParams(c)
+	queryPaginate := h.ParseQueryParams(c, []string{"player", "province"})
 
-	matches, err := h.MatchService.GetAllMatches(queryPaginate)
+	matches, total, err := h.MatchService.GetAllMatches(queryPaginate)
 	if err != nil {
 		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to retrieve matches", err)
 	}
 
-	// Count total matches for pagination
-	total, err := h.MatchService.Count(&models.Match{})
-	if err != nil {
-		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to count matches", err)
-	}
-
-	meta := h.CalculatePaginationMeta(int(c.QueryInt("page", 1)), queryPaginate.Limit, total)
+	meta := h.CalculatePaginationMeta(int(c.QueryInt("page", 1)), queryPaginate.PageSize, total)
 	return h.PaginatedSuccessResponse(c, "Matches retrieved successfully", matches, meta)
 }
 
 func (h *MatchHandler) GetAllAdminMatches(c *fiber.Ctx) error {
-	queryPaginate := h.GetPaginationParams(c)
+	queryPaginate := h.ParseQueryParams(c, nil)
 
-	matches, err := h.MatchService.GetAllMatches(queryPaginate)
+	matches, total, err := h.MatchService.GetAllMatches(queryPaginate)
 	if err != nil {
 		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to retrieve matches", err)
 	}
 
-	// Count total matches for pagination
-	total, err := h.MatchService.Count(&models.Match{})
-	if err != nil {
-		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to count matches", err)
-	}
-
-	meta := h.CalculatePaginationMeta(int(c.QueryInt("page", 1)), queryPaginate.Limit, total)
+	meta := h.CalculatePaginationMeta(int(c.QueryInt("page", 1)), queryPaginate.PageSize, total)
 	return h.PaginatedSuccessResponse(c, "Matches retrieved successfully", matches, meta)
 }
 

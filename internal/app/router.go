@@ -14,7 +14,6 @@ func InitializeRoute(app *fiber.App, appConfig *commons.AppConfig) {
 
 	// Initialize services
 	playerService := services.NewPlayerService(db.Conn)
-	roleService := services.NewRoleService(db.Conn)
 	adminService := services.NewAdminService(db.Conn)
 	parlourService := services.NewParlourService(db.Conn)
 	matchService := services.NewMatchService(db.Conn)
@@ -30,7 +29,6 @@ func InitializeRoute(app *fiber.App, appConfig *commons.AppConfig) {
 
 	// Initialize handlers
 	playerHandler := handler.NewPlayerHandler(playerService)
-	roleHandler := handler.NewRoleHandler(roleService)
 	adminHandler := handler.NewAdminHandler(adminService)
 	parlourHandler := handler.NewParlourHandler(parlourService)
 	matchHandler := handler.NewMatchHandler(matchService)
@@ -56,13 +54,6 @@ func InitializeRoute(app *fiber.App, appConfig *commons.AppConfig) {
 	api.Post("/players", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin", "super-admin"}), playerHandler.CreatePlayer) // Public registration
 	api.Put("/players/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin", "super-admin"}), playerHandler.UpdatePlayer)
 	api.Delete("/players/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"super-admin"}), playerHandler.DeletePlayer)
-
-	// Role routes (admin only)
-	api.Get("/roles", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), roleHandler.GetAllRoles)
-	api.Get("/roles/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin"}), roleHandler.GetRoleByID)
-	api.Post("/roles", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"super-admin"}), roleHandler.CreateRole)
-	api.Put("/roles/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"super-admin"}), roleHandler.UpdateRole)
-	api.Delete("/roles/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"super-admin"}), roleHandler.DeleteRole)
 
 	// Admin routes (super-admin only)
 	api.Get("/admins", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"super-admin"}), adminHandler.GetAllAdmins)

@@ -14,7 +14,8 @@ type Player struct {
 	UpdatedAt  time.Time `json:"updated_at" gorm:"autoUpdateTime"`
 
 	// Relations
-	Province Province `gorm:"foreignKey:ProvinceID" json:"province,omitempty"`
+	Province *Province `gorm:"foreignKey:province_id" json:"province,omitempty"`
+	Match    []Match   `gorm:"many2many:match_players" json:"matches,omitempty"`
 }
 
 type PlayerRequest struct {

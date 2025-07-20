@@ -1,10 +1,7 @@
 package handler
 
 import (
-	"fmt"
-	"net/url"
 	"strconv"
-	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/riichi-mahjong-dev/backend-riichi/commons"
@@ -32,13 +29,6 @@ type PaginatedResponse struct {
 	Message string          `json:"message"`
 	Data    any             `json:"data"`
 	Meta    *PaginationMeta `json:"meta"`
-}
-
-type QueryParams struct {
-	Page     int               `form:"page" query:"page"`
-	PageSize int               `form:"pageSize" query:"pageSize"`
-	Search   string            `form:"search" query:"search"`
-	Filters  map[string]string // Custom filters, e.g., age, status
 }
 
 // Helper functions
@@ -70,47 +60,6 @@ func (h *BaseHandler) PaginatedSuccessResponse(c *fiber.Ctx, message string, dat
 	})
 }
 
-func (h *BaseHandler) GetPaginationParams(c *fiber.Ctx) commons.QueryPagination {
-	var queryPaginate commons.QueryPagination
-
-	if err := c.QueryParser(&queryPaginate); err != nil {
-		fmt.Errorf("Invalid query param")
-	}
-
-	rawQuery := c.Context().QueryArgs().String()
-	parsed, _ := url.ParseQuery(rawQuery)
-
-	queryPaginate.Filters = make(map[string]string)
-
-	for key, value := range parsed {
-		if strings.Contains(key, "[") && strings.HasSuffix(key, "]") {
-			innerKey := key[len("filters[") : len(key)-1]
-			if len(value) > 0 {
-				queryPaginate.Filters[innerKey] = value[len(value)-1]
-			}
-		}
-	}
-
-	if queryPaginate.Page < 1 {
-		queryPaginate.Page = 1
-	}
-
-	if queryPaginate.Limit < 1 {
-		queryPaginate.Limit = 10
-	}
-
-	if queryPaginate.Sort == "" {
-		queryPaginate.Sort = "ASC"
-	}
-
-	if queryPaginate.SortBy == "" {
-		queryPaginate.SortBy = "id"
-	}
-
-	queryPaginate.Offset = (queryPaginate.Page - 1) * queryPaginate.Limit
-	return queryPaginate
-}
-
 func (h *BaseHandler) GetIDParam(c *fiber.Ctx) (uint64, error) {
 	idStr := c.Params("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
@@ -130,11 +79,27 @@ func (h *BaseHandler) CalculatePaginationMeta(page, limit int, total int64) *Pag
 	}
 }
 
-func ParseQueryParams(c *fiber.Ctx, filtersAllowed []string) QueryParams {
-	page := c.QueryInt("page", 1)
-	pageSize := c.QueryInt("pageSize", 10)
+func (h *BaseHandler) ParseQueryParams(c *fiber.Ctx, filtersAllowed []string) commons.QueryParams {
+	page := c.QueryInt("page[number]", 1)
+	pageSize := c.QueryInt("page[size]", 10)
 	search := c.Query("search", "")
-	filters := make(map[string]string)
+	sort := c.Query("sort", "id")
+	filters := make(map[string]any)
+	order := "asc"
+	orderBy := sort
+
+	if page < 1 {
+		page = 1
+	}
+
+	if pageSize < 1 {
+		pageSize = 10
+	}
+
+	if len(sort) > 0 && sort[0] == '-' {
+		order = "desc"
+		orderBy = sort[1:]
+	}
 
 	for _, filterAllowed := range filtersAllowed {
 		filterValue := c.Query("filter["+filterAllowed+"]", "")
@@ -143,10 +108,12 @@ func ParseQueryParams(c *fiber.Ctx, filtersAllowed []string) QueryParams {
 		}
 	}
 
-	return QueryParams{
+	return commons.QueryParams{
 		Page:     page,
 		PageSize: pageSize,
 		Search:   search,
+		OrderBy:  orderBy,
+		Order:    order,
 		Filters:  filters,
 	}
 }

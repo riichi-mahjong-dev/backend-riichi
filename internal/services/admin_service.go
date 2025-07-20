@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/riichi-mahjong-dev/backend-riichi/commons"
 	"github.com/riichi-mahjong-dev/backend-riichi/internal/models"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -73,13 +74,20 @@ func (s *AdminService) GetAdminByID(id uint64) (*models.Admin, error) {
 	return &admin, nil
 }
 
-func (s *AdminService) GetAllAdmins(limit, offset int) ([]models.Admin, error) {
-	var admins []models.Admin
-	err := s.GetAll(&admins, limit, offset)
-	if err != nil {
-		return nil, err
-	}
-	return admins, nil
+func (s *AdminService) GetAllAdmins(queryPaginate commons.QueryParams) ([]models.Admin, int64, error) {
+	return Paginate(
+		s.DB,
+		models.Admin{},
+		[]string{},
+		queryPaginate.Filters,
+		[]string{},
+		[]string{"name"},
+		queryPaginate.Search,
+		queryPaginate.Page,
+		queryPaginate.PageSize,
+		queryPaginate.OrderBy,
+		queryPaginate.Order,
+	)
 }
 
 func (s *AdminService) UpdateAdmin(id uint64, req *models.AdminRequest) (*models.Admin, error) {

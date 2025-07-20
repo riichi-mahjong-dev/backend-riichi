@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/riichi-mahjong-dev/backend-riichi/commons"
 	"github.com/riichi-mahjong-dev/backend-riichi/internal/models"
 	"gorm.io/gorm"
 )
@@ -38,13 +39,20 @@ func (s *PostService) GetPostByID(id uint64) (*models.Post, error) {
 	return &post, nil
 }
 
-func (s *PostService) GetAllPosts(limit, offset int) ([]models.Post, error) {
-	var posts []models.Post
-	err := s.GetAll(&posts, limit, offset)
-	if err != nil {
-		return nil, err
-	}
-	return posts, nil
+func (s *PostService) GetAllPosts(queryPaginate commons.QueryParams) ([]models.Post, int64, error) {
+	return Paginate(
+		s.DB,
+		models.Post{},
+		[]string{},
+		queryPaginate.Filters,
+		[]string{},
+		[]string{"title", "slug"},
+		queryPaginate.Search,
+		queryPaginate.Page,
+		queryPaginate.PageSize,
+		queryPaginate.OrderBy,
+		queryPaginate.Order,
+	)
 }
 
 func (s *PostService) UpdatePost(id uint64, req *models.PostRequest) (*models.Post, error) {

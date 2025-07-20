@@ -13,9 +13,9 @@ type Match struct {
 	UpdatedAt  time.Time  `json:"updated_at" gorm:"autoUpdateTime"`
 
 	// Relations
-	Players []MatchPlayer `gorm:"foreignKey:match_id"`
-	Parlour Parlour       `gorm:"foreignKey:parlour_id" json:"parlour,omitempty"`
-	Creator *Player       `gorm:"foreignKey:created_by" json:"creator,omitempty"`
+	Players []Player `gorm:"many2many:match_players" json:"players,omitempty"`
+	Parlour *Parlour `gorm:"foreignKey:parlour_id" json:"parlour,omitempty"`
+	Creator *Player  `gorm:"foreignKey:created_by" json:"creator,omitempty"`
 }
 
 type PointMatchPlayer struct {
