@@ -100,7 +100,7 @@ func Paginate[T any](
 		var likeConditions []string
 		var likeArgs []any
 		for _, col := range searchFields {
-			likeConditions = append(likeConditions, fmt.Sprintf("%s ILIKE ?", col))
+			likeConditions = append(likeConditions, fmt.Sprintf("%s LIKE ?", col))
 			likeArgs = append(likeArgs, "%"+searchTerm+"%")
 		}
 		query = query.Where(strings.Join(likeConditions, " OR "), likeArgs...)
