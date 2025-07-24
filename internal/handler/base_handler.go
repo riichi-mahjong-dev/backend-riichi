@@ -2,6 +2,7 @@ package handler
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/riichi-mahjong-dev/backend-riichi/commons"
@@ -104,7 +105,7 @@ func (h *BaseHandler) ParseQueryParams(c *fiber.Ctx, filtersAllowed []string) co
 	for _, filterAllowed := range filtersAllowed {
 		filterValue := c.Query("filter["+filterAllowed+"]", "")
 		if filterValue != "" {
-			filters[filterAllowed] = filterValue
+			filters[filterAllowed] = strings.Split(filterValue, ",")
 		}
 	}
 

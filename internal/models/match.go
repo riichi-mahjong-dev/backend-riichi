@@ -11,6 +11,7 @@ type Match struct {
 	CreatedBy  *uint64    `json:"created_by"`
 	CreatedAt  time.Time  `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt  time.Time  `json:"updated_at" gorm:"autoUpdateTime"`
+	PlayingAt  time.Time  `json:"playing_at"`
 
 	// Relations
 	Players []Player `gorm:"many2many:match_players" json:"players,omitempty"`
@@ -34,11 +35,13 @@ type UpdatePlayerMatch struct {
 
 type UpdateMatchRequest struct {
 	ParlourID uint64              `json:"parlour_id" validate:"required"`
+	PlayingAt time.Time           `json:"playing_at" validate:"required"`
 	Players   []UpdatePlayerMatch `json:"players"`
 }
 
 type MatchRequest struct {
 	ParlourID uint64        `json:"parlour_id" validate:"required"`
+	PlayingAt time.Time     `json:"playing_at" validate:"required"`
 	Players   []PlayerMatch `json:"players"`
 }
 

@@ -1,6 +1,8 @@
 package services
 
 import (
+	"errors"
+
 	"github.com/riichi-mahjong-dev/backend-riichi/commons"
 	"github.com/riichi-mahjong-dev/backend-riichi/internal/models"
 	"golang.org/x/crypto/bcrypt"
@@ -107,4 +109,32 @@ func (s *PlayerService) GetPlayerByUsername(username string) (*models.Player, er
 		return nil, err
 	}
 	return &player, nil
+}
+
+func (s *PlayerService) UpdatePassword(userId uint64, oldPassword string, newPassword string) error {
+	player, err := s.GetPlayerByID(userId)
+	if err != nil {
+		return errors.New("player not found")
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(player.Password), []byte(oldPassword)); err != nil {
+		return errors.New("old password not match")
+	}
+
+	// Hash password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	updates := map[string]any{
+		"password": string(hashedPassword),
+	}
+
+	err = s.Update(&models.Player{}, userId, updates)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

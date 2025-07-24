@@ -17,7 +17,7 @@ type Admin struct {
 	CreatedAt time.Time `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt time.Time `json:"updated_at" gorm:"autoUpdateTime"`
 
-	AdminPermission []AdminPermission `json:"admin_permission"`
+	AdminPermission []AdminPermission `gorm:"foreignKey:admin_id" json:"admin_permission"`
 }
 
 type AdminPermissionRequest struct {

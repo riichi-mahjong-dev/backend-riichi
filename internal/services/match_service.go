@@ -25,6 +25,7 @@ func NewMatchService(db *gorm.DB) *MatchService {
 func (s *MatchService) CreateMatch(req *models.MatchRequest, userId uint64, role string) (*models.Match, error) {
 	match := &models.Match{
 		ParlourID: req.ParlourID,
+		PlayingAt: req.PlayingAt,
 	}
 
 	if role == "player" {
@@ -156,6 +157,7 @@ func (s *MatchService) UpdateMatch(id uint64, req *models.UpdateMatchRequest, us
 
 	updates := map[string]any{
 		"parlour_id": req.ParlourID,
+		"playing_at": req.PlayingAt,
 	}
 
 	err = s.Update(&models.Match{}, id, updates)
@@ -230,30 +232,6 @@ func (s *MatchService) ApproveMatch(id uint64, approvedBy uint64) (*models.Match
 	match.ApprovedBy = &approvedBy
 
 	return match, nil
-}
-
-func (s *MatchService) GetAllMatchesByAdmin(queryPaginate commons.QueryParams, userId uint64) ([]models.Match, int64, error) {
-	preloads := []string{"Parlour", "Creator"}
-	return Paginate(
-		s.DB.Distinct("matches.id, matches.parlour_id, matches.created_by, matches.created_at, matches.updated_at, matches.approved_by, matches.approved_at"),
-		models.Match{},
-		[]string{
-			"LEFT JOIN match_players ON match_players.match_id = matches.id",
-			"LEFT JOIN players ON players.id = match_players.player_id",
-			"LEFT JOIN parlours ON parlours.id = matches.parlour_id",
-		},
-		queryPaginate.Filters,
-		preloads,
-		[]string{
-			"players.name",
-			"parlours.name",
-		},
-		queryPaginate.Search,
-		queryPaginate.Page,
-		queryPaginate.PageSize,
-		queryPaginate.OrderBy,
-		queryPaginate.Order,
-	)
 }
 
 func (s *MatchService) checkAdminPermission(adminId uint64, provinceId uint64, parlourId uint64) error {

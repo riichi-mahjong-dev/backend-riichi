@@ -54,6 +54,7 @@ func InitializeRoute(app *fiber.App, appConfig *commons.AppConfig) {
 	api.Post("/players", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin", "super-admin"}), playerHandler.CreatePlayer) // Public registration
 	api.Put("/players/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin", "super-admin"}), playerHandler.UpdatePlayer)
 	api.Delete("/players/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"super-admin"}), playerHandler.DeletePlayer)
+	api.Post("/players/change-password", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"player"}), playerHandler.ChangePassword)
 
 	// Admin routes (super-admin only)
 	api.Get("/admins", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"super-admin"}), adminHandler.GetAllAdmins)
@@ -61,6 +62,7 @@ func InitializeRoute(app *fiber.App, appConfig *commons.AppConfig) {
 	api.Post("/admins", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"super-admin"}), adminHandler.CreateAdmin)
 	api.Put("/admins/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"super-admin"}), adminHandler.UpdateAdmin)
 	api.Delete("/admins/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"super-admin"}), adminHandler.DeleteAdmin)
+	api.Post("/admins/change-password", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"player"}), adminHandler.ChangePassword)
 
 	// Province routes (public view, admin modifications)
 	api.Get("/provinces", provinceHandler.GetAllProvinces)     // Public - guests can view

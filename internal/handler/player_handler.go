@@ -89,3 +89,19 @@ func (h *PlayerHandler) DeletePlayer(c *fiber.Ctx) error {
 
 	return h.SuccessResponse(c, "Player deleted successfully", nil)
 }
+
+func (h *PlayerHandler) ChangePassword(c *fiber.Ctx) error {
+	var req models.ChangePasswordRequest
+	if err := c.BodyParser(&req); err != nil {
+		return h.ErrorResponse(c, fiber.StatusBadRequest, "Invalid request", err)
+	}
+
+	userData := c.Locals("user").(*models.AuthUser)
+
+	err := h.PlayerService.UpdatePassword(userData.ID, req.OldPassword, req.NewPassword)
+	if err != nil {
+		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to change password", err)
+	}
+
+	return h.SuccessResponse(c, "Password changed", nil)
+}

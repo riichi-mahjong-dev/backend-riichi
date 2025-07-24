@@ -1,6 +1,8 @@
 package services
 
 import (
+	"errors"
+
 	"github.com/riichi-mahjong-dev/backend-riichi/commons"
 	"github.com/riichi-mahjong-dev/backend-riichi/internal/models"
 	"golang.org/x/crypto/bcrypt"
@@ -67,7 +69,8 @@ func (s *AdminService) CreateAdmin(req *models.AdminRequest) (*models.Admin, err
 
 func (s *AdminService) GetAdminByID(id uint64) (*models.Admin, error) {
 	var admin models.Admin
-	err := s.GetByID(&admin, id)
+	preloads := []string{"AdminPermission"}
+	err := s.GetByIDWithPreload(&admin, id, preloads...)
 	if err != nil {
 		return nil, err
 	}
@@ -171,4 +174,32 @@ func (s *AdminService) CreateAdminPermission(adminId uint64, provinceId uint64, 
 	}
 
 	return adminPermission, nil
+}
+
+func (s *AdminService) UpdatePassword(userId uint64, oldPassword string, newPassword string) error {
+	admin, err := s.GetAdminByID(userId)
+	if err != nil {
+		return errors.New("admin not found")
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(admin.Password), []byte(oldPassword)); err != nil {
+		return errors.New("old password not match")
+	}
+
+	// Hash password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	updates := map[string]any{
+		"password": string(hashedPassword),
+	}
+
+	err = s.Update(&models.Admin{}, userId, updates)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

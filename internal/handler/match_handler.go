@@ -54,7 +54,7 @@ func (h *MatchHandler) GetMatchByID(c *fiber.Ctx) error {
 }
 
 func (h *MatchHandler) GetAllMatches(c *fiber.Ctx) error {
-	queryPaginate := h.ParseQueryParams(c, []string{"player", "province"})
+	queryPaginate := h.ParseQueryParams(c, []string{"players", "provinces", "parlours.id"})
 
 	matches, total, err := h.MatchService.GetAllMatches(queryPaginate)
 	if err != nil {

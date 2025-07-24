@@ -25,6 +25,14 @@ func (s *BaseService) GetByID(model any, id uint64) error {
 	return s.DB.First(model, id).Error
 }
 
+func (s *BaseService) GetByIDWithPreload(model any, id uint64, preloads ...string) error {
+	query := s.DB
+	for _, preload := range preloads {
+		query = query.Preload(preload)
+	}
+	return query.First(model, id).Error
+}
+
 func (s *BaseService) GetAll(models any, limit, offset int) error {
 	query := s.DB
 	if limit > 0 {
@@ -108,7 +116,7 @@ func Paginate[T any](
 
 	// Apply filters
 	for field, value := range filters {
-		query = query.Where(fmt.Sprintf("%s = ?", field), value)
+		query = query.Where(fmt.Sprintf("%s IN ?", field), value)
 	}
 
 	for _, include := range includes {

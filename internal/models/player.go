@@ -38,3 +38,8 @@ type PlayerResponse struct {
 	UpdatedAt  time.Time         `json:"updated_at"`
 	Province   *ProvinceResponse `json:"province,omitempty"`
 }
+
+type ChangePasswordRequest struct {
+	OldPassword string `json:"old_password" validate:"required"`
+	NewPassword string `json:"new_password" validate:"required"`
+}
