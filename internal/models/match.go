@@ -55,6 +55,7 @@ type MatchResponse struct {
 	Approver     *Admin           `json:"approver,omitempty"`
 	CreatedAt    time.Time        `json:"created_at"`
 	UpdatedAt    time.Time        `json:"updated_at"`
+	PlayingAt    time.Time        `jsong:"playing_at"`
 	MatchPlayers []MatchPlayer    `json:"match_players"`
 	Creator      *Player          `json:"creator_player"`
 }

@@ -113,7 +113,7 @@ func (s *MatchService) GetMatchByID(id uint64) (*models.Match, error) {
 func (s *MatchService) GetAllMatches(queryPaginate commons.QueryParams) ([]models.Match, int64, error) {
 	preloads := []string{"Parlour", "Creator", "Players"}
 	return Paginate(
-		s.DB.Distinct("matches.id, matches.parlour_id, matches.created_by, matches.created_at, matches.updated_at, matches.approved_by, matches.approved_at"),
+		s.DB.Distinct("matches.id, matches.parlour_id, matches.created_by, matches.created_at, matches.updated_at, matches.approved_by, matches.approved_at, matches.playing_at, matches.status"),
 		models.Match{},
 		[]string{
 			"LEFT JOIN match_players ON match_players.match_id = matches.id",
