@@ -1,12 +1,16 @@
 package models
 
+import "time"
+
 type Parlour struct {
-	ID         uint64 `gorm:"primaryKey" json:"id"`
-	Name       string `gorm:"size:255;not null" json:"name" validate:"required,min:2"`
-	Country    string `gorm:"size:255;not null" json:"country" validate:"required"`
-	ProvinceID uint64 `gorm:"not null" json:"province_id" validate:"required"`
-	Address    string `gorm:"type:text" json:"address"`
-	
+	ID         uint64    `gorm:"primaryKey" json:"id"`
+	Name       string    `gorm:"size:255;not null" json:"name" validate:"required,min:2"`
+	Country    string    `gorm:"size:255;not null" json:"country" validate:"required"`
+	ProvinceID uint64    `gorm:"not null" json:"province_id" validate:"required"`
+	Address    string    `gorm:"type:text" json:"address"`
+	CreatedAt  time.Time `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt  time.Time `json:"updated_at" gorm:"autoUpdateTime"`
+
 	// Relations
 	Province Province `gorm:"foreignKey:ProvinceID" json:"province,omitempty"`
 }

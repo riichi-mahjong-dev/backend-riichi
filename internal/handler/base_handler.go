@@ -23,6 +23,7 @@ type PaginationMeta struct {
 	PerPage     int   `json:"per_page"`
 	Total       int64 `json:"total"`
 	TotalPages  int   `json:"total_pages"`
+	HasMore     bool  `json:"has_more"`
 }
 
 type PaginatedResponse struct {
@@ -72,11 +73,13 @@ func (h *BaseHandler) GetIDParam(c *fiber.Ctx) (uint64, error) {
 
 func (h *BaseHandler) CalculatePaginationMeta(page, limit int, total int64) *PaginationMeta {
 	totalPages := int((total + int64(limit) - 1) / int64(limit))
+	hasMore := page < totalPages
 	return &PaginationMeta{
 		CurrentPage: page,
 		PerPage:     limit,
 		Total:       total,
 		TotalPages:  totalPages,
+		HasMore:     hasMore,
 	}
 }
 

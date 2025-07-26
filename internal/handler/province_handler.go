@@ -53,7 +53,7 @@ func (h *ProvinceHandler) GetAllProvinces(c *fiber.Ctx) error {
 		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to retrieve provinces", err)
 	}
 
-	meta := h.CalculatePaginationMeta(int(c.QueryInt("page", 1)), queryPaginate.PageSize, total)
+	meta := h.CalculatePaginationMeta(queryPaginate.Page, queryPaginate.PageSize, total)
 	return h.PaginatedSuccessResponse(c, "Provinces retrieved successfully", provinces, meta)
 }
 

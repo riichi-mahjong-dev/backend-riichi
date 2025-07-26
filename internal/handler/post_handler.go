@@ -53,7 +53,7 @@ func (h *PostHandler) GetAllPosts(c *fiber.Ctx) error {
 		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to retrieve posts", err)
 	}
 
-	meta := h.CalculatePaginationMeta(int(c.QueryInt("page", 1)), queryPaginate.PageSize, total)
+	meta := h.CalculatePaginationMeta(queryPaginate.Page, queryPaginate.PageSize, total)
 	return h.PaginatedSuccessResponse(c, "Posts retrieved successfully", posts, meta)
 }
 

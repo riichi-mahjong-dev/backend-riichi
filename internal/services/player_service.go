@@ -55,14 +55,12 @@ func (s *PlayerService) GetAllPlayers(queryPaginate commons.QueryParams) ([]mode
 	return Paginate(
 		s.DB,
 		models.Player{},
-		[]string{
-			"JOIN provinces ON provinces.id = players.province_id",
-		},
+		[]string{},
 		queryPaginate.Filters,
 		[]string{"Province"},
 		[]string{
-			"players.name",
-			"provinces.name",
+			"name",
+			"username",
 		},
 		queryPaginate.Search,
 		queryPaginate.Page,

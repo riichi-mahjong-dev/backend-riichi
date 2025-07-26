@@ -54,26 +54,14 @@ func (h *MatchHandler) GetMatchByID(c *fiber.Ctx) error {
 }
 
 func (h *MatchHandler) GetAllMatches(c *fiber.Ctx) error {
-	queryPaginate := h.ParseQueryParams(c, []string{"players", "provinces", "parlours.id"})
+	queryPaginate := h.ParseQueryParams(c, []string{"players.id", "provinces", "parlours.id"})
 
 	matches, total, err := h.MatchService.GetAllMatches(queryPaginate)
 	if err != nil {
 		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to retrieve matches", err)
 	}
 
-	meta := h.CalculatePaginationMeta(int(c.QueryInt("page", 1)), queryPaginate.PageSize, total)
-	return h.PaginatedSuccessResponse(c, "Matches retrieved successfully", matches, meta)
-}
-
-func (h *MatchHandler) GetAllAdminMatches(c *fiber.Ctx) error {
-	queryPaginate := h.ParseQueryParams(c, nil)
-
-	matches, total, err := h.MatchService.GetAllMatches(queryPaginate)
-	if err != nil {
-		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to retrieve matches", err)
-	}
-
-	meta := h.CalculatePaginationMeta(int(c.QueryInt("page", 1)), queryPaginate.PageSize, total)
+	meta := h.CalculatePaginationMeta(queryPaginate.Page, queryPaginate.PageSize, total)
 	return h.PaginatedSuccessResponse(c, "Matches retrieved successfully", matches, meta)
 }
 

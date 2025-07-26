@@ -50,10 +50,8 @@ func (database *Database) Migrate() {
 		log.Error(err)
 		return
 	}
-	fmt.Println("Database migrated")
 }
 
 func (database *Database) Seeder(fresh bool) {
 	seeders.SeedDB(database.Conn).RunSeeder()
-	fmt.Println("Seeder done")
 }

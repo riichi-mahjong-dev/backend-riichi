@@ -44,13 +44,10 @@ func (s *ParlourService) GetAllParlours(queryPaginate commons.QueryParams) ([]mo
 	return Paginate(
 		s.DB,
 		models.Parlour{},
-		[]string{
-			"JOIN provinces ON provinces.id = parlours.province_id",
-		},
+		[]string{},
 		queryPaginate.Filters,
 		[]string{"Province"},
 		[]string{
-			"provinces.name",
 			"parlours.name",
 		},
 		queryPaginate.Search,

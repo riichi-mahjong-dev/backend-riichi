@@ -102,7 +102,7 @@ func (s *MatchService) PointMatch(id uint64, req *models.PointMatchRequest, user
 
 func (s *MatchService) GetMatchByID(id uint64) (*models.Match, error) {
 	var match models.Match
-	preloads := []string{"Parlour", "Parlour.Province", "Players.Player", "Creator"}
+	preloads := []string{"Parlour", "Parlour.Province", "Creator", "MatchPlayers.Player"}
 	err := s.GetWithPreload(&match, id, preloads...)
 	if err != nil {
 		return nil, err
@@ -111,21 +111,14 @@ func (s *MatchService) GetMatchByID(id uint64) (*models.Match, error) {
 }
 
 func (s *MatchService) GetAllMatches(queryPaginate commons.QueryParams) ([]models.Match, int64, error) {
-	preloads := []string{"Parlour", "Creator", "Players"}
+	preloads := []string{"Parlour", "Creator", "MatchPlayers.Player"}
 	return Paginate(
-		s.DB.Distinct("matches.id, matches.parlour_id, matches.created_by, matches.created_at, matches.updated_at, matches.approved_by, matches.approved_at, matches.playing_at, matches.status"),
+		s.DB,
 		models.Match{},
-		[]string{
-			"LEFT JOIN match_players ON match_players.match_id = matches.id",
-			"LEFT JOIN players ON players.id = match_players.player_id",
-			"LEFT JOIN parlours ON parlours.id = matches.parlour_id",
-		},
+		[]string{},
 		queryPaginate.Filters,
 		preloads,
-		[]string{
-			"players.name",
-			"parlours.name",
-		},
+		[]string{},
 		queryPaginate.Search,
 		queryPaginate.Page,
 		queryPaginate.PageSize,
