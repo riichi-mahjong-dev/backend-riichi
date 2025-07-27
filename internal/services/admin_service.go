@@ -78,12 +78,14 @@ func (s *AdminService) GetAdminByID(id uint64) (*models.Admin, error) {
 }
 
 func (s *AdminService) GetAllAdmins(queryPaginate commons.QueryParams) ([]models.Admin, int64, error) {
+	preloads := map[string]func(*gorm.DB) *gorm.DB{}
 	return Paginate(
 		s.DB,
 		models.Admin{},
 		[]string{},
 		queryPaginate.Filters,
-		[]string{},
+		map[string]func(*gorm.DB, any) *gorm.DB{},
+		preloads,
 		[]string{"name"},
 		queryPaginate.Search,
 		queryPaginate.Page,

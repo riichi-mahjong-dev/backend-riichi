@@ -38,12 +38,14 @@ func (s *ProvinceService) GetProvinceByID(id uint64) (*models.Province, error) {
 }
 
 func (s *ProvinceService) GetAllProvinces(queryPaginate commons.QueryParams) ([]models.Province, int64, error) {
+	preloads := map[string]func(*gorm.DB) *gorm.DB{}
 	return Paginate(
 		s.DB,
 		models.Province{},
 		[]string{},
 		queryPaginate.Filters,
-		[]string{},
+		map[string]func(*gorm.DB, any) *gorm.DB{},
+		preloads,
 		[]string{"name"},
 		queryPaginate.Search,
 		queryPaginate.Page,

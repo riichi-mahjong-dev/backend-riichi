@@ -10,12 +10,13 @@ const (
 )
 
 type Admin struct {
-	ID        uint64    `gorm:"primaryKey" json:"id"`
-	Username  string    `gorm:"size:255;not null" json:"username" validate:"required,min:2"`
-	Password  string    `gorm:"size:255;not null" json:"-"`
-	Role      AdminRole `gorm:"size:20;not null" json:"role" validate:"required"`
-	CreatedAt time.Time `json:"created_at" gorm:"autoCreateTime"`
-	UpdatedAt time.Time `json:"updated_at" gorm:"autoUpdateTime"`
+	ID        uint64     `gorm:"primaryKey" json:"id"`
+	Username  string     `gorm:"size:255;not null" json:"username" validate:"required,min:2"`
+	Password  string     `gorm:"size:255;not null" json:"-"`
+	Role      AdminRole  `gorm:"size:20;not null" json:"role" validate:"required"`
+	CreatedAt time.Time  `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt time.Time  `json:"updated_at" gorm:"autoUpdateTime"`
+	DeletedAt *time.Time `json:"deleted_at" gorm:"index"`
 
 	AdminPermission []AdminPermission `gorm:"foreignKey:admin_id" json:"admin_permission"`
 }

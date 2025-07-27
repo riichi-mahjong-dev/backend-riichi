@@ -40,12 +40,14 @@ func (s *PostService) GetPostByID(id uint64) (*models.Post, error) {
 }
 
 func (s *PostService) GetAllPosts(queryPaginate commons.QueryParams) ([]models.Post, int64, error) {
+	preloads := map[string]func(*gorm.DB) *gorm.DB{}
 	return Paginate(
 		s.DB,
 		models.Post{},
 		[]string{},
 		queryPaginate.Filters,
-		[]string{},
+		map[string]func(*gorm.DB, any) *gorm.DB{},
+		preloads,
 		[]string{"title", "slug"},
 		queryPaginate.Search,
 		queryPaginate.Page,

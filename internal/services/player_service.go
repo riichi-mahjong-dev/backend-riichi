@@ -57,7 +57,13 @@ func (s *PlayerService) GetAllPlayers(queryPaginate commons.QueryParams) ([]mode
 		models.Player{},
 		[]string{},
 		queryPaginate.Filters,
-		[]string{"Province"},
+		map[string]func(*gorm.DB, any) *gorm.DB{},
+		map[string]func(*gorm.DB) *gorm.DB{
+			"Province": nil,
+			"MatchPlayers": func(db *gorm.DB) *gorm.DB {
+				return db.Order("created_at DESC").Limit(1)
+			},
+		},
 		[]string{
 			"name",
 			"username",

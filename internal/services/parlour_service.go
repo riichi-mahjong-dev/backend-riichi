@@ -41,12 +41,14 @@ func (s *ParlourService) GetParlourByID(id uint64) (*models.Parlour, error) {
 }
 
 func (s *ParlourService) GetAllParlours(queryPaginate commons.QueryParams) ([]models.Parlour, int64, error) {
+	preloads := map[string]func(*gorm.DB) *gorm.DB{"Province": nil}
 	return Paginate(
 		s.DB,
 		models.Parlour{},
 		[]string{},
 		queryPaginate.Filters,
-		[]string{"Province"},
+		map[string]func(*gorm.DB, any) *gorm.DB{},
+		preloads,
 		[]string{
 			"parlours.name",
 		},

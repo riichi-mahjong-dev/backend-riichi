@@ -72,12 +72,42 @@ func (s *BaseService) Exists(model any, id uint64) (bool, error) {
 	return count > 0, err
 }
 
+func WhereHas(db *gorm.DB, relationTable string, fk string, parentTable string, subFilter func(*gorm.DB) *gorm.DB) *gorm.DB {
+	sub := db.Table(relationTable).
+		Select("1").
+		Where(fmt.Sprintf("%s.%s = %s.id", relationTable, fk, parentTable))
+
+	sub = subFilter(sub)
+
+	return db.Where("EXISTS (?)", sub)
+}
+
+func singularize(table string) string {
+	if strings.HasSuffix(table, "ies") {
+		// companies → company
+		return strings.TrimSuffix(table, "ies") + "y"
+	}
+
+	if strings.HasSuffix(table, "es") {
+		// matches → match, boxes → box
+		return strings.TrimSuffix(table, "es")
+	}
+
+	if strings.HasSuffix(table, "s") && !strings.HasSuffix(table, "ss") {
+		// users → user
+		return strings.TrimSuffix(table, "s")
+	}
+
+	return table
+}
+
 func Paginate[T any](
 	db *gorm.DB,
 	model T,
 	joins []string,
 	filters map[string]any,
-	includes []string,
+	filterFuncs map[string]func(*gorm.DB, any) *gorm.DB,
+	includes map[string]func(*gorm.DB) *gorm.DB,
 	searchFields []string,
 	searchTerm string,
 	page int,
@@ -98,29 +128,69 @@ func Paginate[T any](
 	offset := (page - 1) * pageSize
 
 	query := db.Model(model)
+	stmt := &gorm.Statement{DB: db}
+	if err := stmt.Parse(model); err != nil {
+		return nil, 0, err
+	}
+	parentTable := stmt.Table
 
-	for _, join := range joins {
-		query = query.Joins(join)
+	// Apply filters
+	for field, value := range filters {
+		fmt.Println(field)
+		fmt.Println(value)
+		if filterFuncs, ok := filterFuncs[field]; ok {
+			query = filterFuncs(query, value)
+			continue
+		}
+
+		// Check for nested field
+		if strings.Contains(field, ".") {
+			parts := strings.Split(field, ".")
+			relationTable := parts[0]
+			fieldName := parts[1]
+			fk := fmt.Sprintf("%s_id", singularize(parentTable))
+
+			query = query.Where("EXISTS (?)",
+				db.Table(relationTable).
+					Select("1").
+					Where(fmt.Sprintf("%s.%s = %s.id", relationTable, fk, parentTable)).
+					Where(fmt.Sprintf("%s.%s IN (?)", relationTable, fieldName), value),
+			)
+		} else {
+			query = query.Where(fmt.Sprintf("%s IN (?)", field), value)
+		}
 	}
 
 	// Apply search
 	if searchTerm != "" && len(searchFields) > 0 {
-		var likeConditions []string
-		var likeArgs []any
-		for _, col := range searchFields {
-			likeConditions = append(likeConditions, fmt.Sprintf("%s LIKE ?", col))
-			likeArgs = append(likeArgs, "%"+searchTerm+"%")
+		query = query.Scopes(func(db *gorm.DB) *gorm.DB {
+			subQuery := db
+			for _, col := range searchFields {
+				if strings.Contains(col, ".") {
+					parts := strings.Split(col, ".")
+					relationTable := parts[0]
+					fieldName := parts[1]
+					fk := fmt.Sprintf("%s_id", parentTable)
+					subQuery = subQuery.Or("EXISTS (?)",
+						db.Table(relationTable).
+							Select("1").
+							Where(fmt.Sprintf("%s.%s = %s.id", relationTable, fk, parentTable)).
+							Where(fmt.Sprintf("%s.%s LIKE ?", relationTable, fieldName), "%"+searchTerm+"%"),
+					)
+				} else {
+					subQuery = subQuery.Or(fmt.Sprintf("%s LIKE ?", col), "%"+searchTerm+"%")
+				}
+			}
+			return subQuery
+		})
+	}
+
+	for key, fn := range includes {
+		if fn != nil {
+			query = query.Preload(key, fn)
+		} else {
+			query = query.Preload(key)
 		}
-		query = query.Where(strings.Join(likeConditions, " OR "), likeArgs...)
-	}
-
-	// Apply filters
-	for field, value := range filters {
-		query = query.Where(fmt.Sprintf("%s IN ?", field), value)
-	}
-
-	for _, include := range includes {
-		query = query.Preload(include)
 	}
 
 	query = query.Order(orderBy + " " + order)

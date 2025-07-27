@@ -3,10 +3,11 @@ package models
 import "time"
 
 type Province struct {
-	ID        uint64    `gorm:"primaryKey" json:"id"`
-	Name      string    `gorm:"size:255;not null" json:"name" validate:"required,min:2"`
-	CreatedAt time.Time `json:"created_at" gorm:"autoCreateTime"`
-	UpdatedAt time.Time `json:"updated_at" gorm:"autoUpdateTime"`
+	ID        uint64     `gorm:"primaryKey" json:"id"`
+	Name      string     `gorm:"size:255;not null" json:"name" validate:"required,min:2"`
+	CreatedAt time.Time  `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt time.Time  `json:"updated_at" gorm:"autoUpdateTime"`
+	DeletedAt *time.Time `json:"deleted_at" gorm:"index"`
 }
 
 type ProvinceRequest struct {

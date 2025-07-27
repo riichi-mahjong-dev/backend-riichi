@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/riichi-mahjong-dev/backend-riichi/commons"
@@ -111,12 +112,42 @@ func (s *MatchService) GetMatchByID(id uint64) (*models.Match, error) {
 }
 
 func (s *MatchService) GetAllMatches(queryPaginate commons.QueryParams) ([]models.Match, int64, error) {
-	preloads := []string{"Parlour", "Creator", "MatchPlayers.Player"}
+	preloads := map[string]func(*gorm.DB) *gorm.DB{"Parlour": nil, "Creator": nil, "MatchPlayers.Player": nil}
 	return Paginate(
 		s.DB,
 		models.Match{},
 		[]string{},
 		queryPaginate.Filters,
+		map[string]func(*gorm.DB, any) *gorm.DB{
+			"playing_between": func(d *gorm.DB, a any) *gorm.DB {
+				val, ok := a.([]string)
+				if !ok {
+					return d
+				}
+
+				if len(val) != 2 {
+					return d
+				}
+
+				startDate := strings.TrimSpace(val[0])
+				endDate := strings.TrimSpace(val[1])
+				return d.Where("playing_at BETWEEN ? AND ?", startDate, endDate)
+			},
+			"created_between": func(d *gorm.DB, a any) *gorm.DB {
+				val, ok := a.([]string)
+				if !ok {
+					return d
+				}
+
+				if len(val) != 2 {
+					return d
+				}
+
+				startDate := strings.TrimSpace(val[0])
+				endDate := strings.TrimSpace(val[1])
+				return d.Where("created_at BETWEEN ? AND ?", startDate, endDate)
+			},
+		},
 		preloads,
 		[]string{},
 		queryPaginate.Search,

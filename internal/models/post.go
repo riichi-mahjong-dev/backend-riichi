@@ -3,14 +3,15 @@ package models
 import "time"
 
 type Post struct {
-	ID          uint64    `gorm:"primaryKey" json:"id"`
-	Title       string    `gorm:"size:255;not null" json:"title" validate:"required,min:2"`
-	Slug        string    `gorm:"size:255;not null" json:"slug" validate:"required,min:2"`
-	Content     string    `gorm:"type:text;not null" json:"content" validate:"required"`
-	CreatedBy   uint64    `gorm:"not null" json:"created_by" validate:"required"`
-	IsPublished bool      `gorm:"not null" json:"is_published" validate:"required"`
-	CreatedAt   time.Time `json:"created_at" gorm:"autoCreateTime"`
-	UpdatedAt   time.Time `json:"updated_at" gorm:"autoUpdateTime"`
+	ID          uint64     `gorm:"primaryKey" json:"id"`
+	Title       string     `gorm:"size:255;not null" json:"title" validate:"required,min:2"`
+	Slug        string     `gorm:"size:255;not null" json:"slug" validate:"required,min:2"`
+	Content     string     `gorm:"type:text;not null" json:"content" validate:"required"`
+	CreatedBy   uint64     `gorm:"not null" json:"created_by" validate:"required"`
+	IsPublished bool       `gorm:"not null" json:"is_published" validate:"required"`
+	CreatedAt   time.Time  `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt   time.Time  `json:"updated_at" gorm:"autoUpdateTime"`
+	DeletedAt   *time.Time `json:"deleted_at" gorm:"index"`
 }
 
 type PostRequest struct {

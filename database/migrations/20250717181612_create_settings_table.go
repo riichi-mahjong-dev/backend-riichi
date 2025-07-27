@@ -17,8 +17,8 @@ func upCreateSettingsTable(ctx context.Context, tx *sql.Tx) error {
 				name VARCHAR(255),
 				value VARCHAR(255),
 				type VARCHAR(255),
-				created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-				updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 			);
 		`)
 	return err
