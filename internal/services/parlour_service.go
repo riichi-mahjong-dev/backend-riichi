@@ -50,7 +50,7 @@ func (s *ParlourService) GetAllParlours(queryPaginate commons.QueryParams) ([]mo
 		map[string]func(*gorm.DB, any) *gorm.DB{},
 		preloads,
 		[]string{
-			"parlours.name",
+			"name",
 		},
 		queryPaginate.Search,
 		queryPaginate.Page,

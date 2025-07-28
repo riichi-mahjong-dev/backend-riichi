@@ -5,7 +5,7 @@ import "time"
 type Player struct {
 	ID         uint64     `gorm:"primaryKey" json:"id"`
 	ProvinceID uint64     `gorm:"not null" json:"province_id"`
-	Rank       int        `gorm:"not null" json:"rank"`
+	Rank       int64      `gorm:"not null" json:"rank"`
 	Name       string     `gorm:"size:255;not null" json:"name"`
 	Country    string     `gorm:"size:255;not null" json:"country"`
 	Username   string     `gorm:"size:255;not null" json:"username" validate:"required,min:2"`
@@ -22,7 +22,7 @@ type Player struct {
 
 type PlayerRequest struct {
 	ProvinceID uint64 `json:"province_id" validate:"required"`
-	Rank       int    `json:"rank" validate:"required"`
+	Rank       int64  `json:"rank" validate:"required"`
 	Name       string `json:"name" validate:"required,min:2"`
 	Country    string `json:"country" validate:"required"`
 	Username   string `json:"username" validate:"required,min:2"`
@@ -32,7 +32,7 @@ type PlayerRequest struct {
 type PlayerResponse struct {
 	ID         uint64            `json:"id"`
 	ProvinceID uint64            `json:"province_id"`
-	Rank       int               `json:"rank"`
+	Rank       int64             `json:"rank"`
 	Name       string            `json:"name"`
 	Country    string            `json:"country"`
 	Username   string            `json:"username"`

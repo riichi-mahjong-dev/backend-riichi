@@ -69,7 +69,7 @@ func (s *AdminService) CreateAdmin(req *models.AdminRequest) (*models.Admin, err
 
 func (s *AdminService) GetAdminByID(id uint64) (*models.Admin, error) {
 	var admin models.Admin
-	preloads := []string{"AdminPermission"}
+	preloads := []string{"AdminPermission.Parlour"}
 	err := s.GetByIDWithPreload(&admin, id, preloads...)
 	if err != nil {
 		return nil, err
@@ -78,7 +78,7 @@ func (s *AdminService) GetAdminByID(id uint64) (*models.Admin, error) {
 }
 
 func (s *AdminService) GetAllAdmins(queryPaginate commons.QueryParams) ([]models.Admin, int64, error) {
-	preloads := map[string]func(*gorm.DB) *gorm.DB{}
+	preloads := map[string]func(*gorm.DB) *gorm.DB{"AdminPermission.Parlour": nil}
 	return Paginate(
 		s.DB,
 		models.Admin{},
@@ -86,7 +86,7 @@ func (s *AdminService) GetAllAdmins(queryPaginate commons.QueryParams) ([]models
 		queryPaginate.Filters,
 		map[string]func(*gorm.DB, any) *gorm.DB{},
 		preloads,
-		[]string{"name"},
+		[]string{"username"},
 		queryPaginate.Search,
 		queryPaginate.Page,
 		queryPaginate.PageSize,
