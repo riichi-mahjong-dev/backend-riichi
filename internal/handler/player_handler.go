@@ -46,7 +46,7 @@ func (h *PlayerHandler) GetPlayerByID(c *fiber.Ctx) error {
 }
 
 func (h *PlayerHandler) GetAllPlayers(c *fiber.Ctx) error {
-	queryPaginate := h.ParseQueryParams(c, nil)
+	queryPaginate := h.ParseQueryParams(c, []string{"mmr_between"})
 
 	players, total, err := h.PlayerService.GetAllPlayers(queryPaginate)
 	if err != nil {

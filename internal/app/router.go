@@ -62,7 +62,7 @@ func InitializeRoute(app *fiber.App, appConfig *commons.AppConfig) {
 	api.Post("/admins", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"super-admin"}), adminHandler.CreateAdmin)
 	api.Put("/admins/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"super-admin"}), adminHandler.UpdateAdmin)
 	api.Delete("/admins/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"super-admin"}), adminHandler.DeleteAdmin)
-	api.Post("/admins/change-password", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"player"}), adminHandler.ChangePassword)
+	api.Post("/admins/change-password", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin", "super-admin"}), adminHandler.ChangePassword)
 
 	// Province routes (public view, admin modifications)
 	api.Get("/provinces", provinceHandler.GetAllProvinces)     // Public - guests can view
@@ -98,7 +98,7 @@ func InitializeRoute(app *fiber.App, appConfig *commons.AppConfig) {
 	api.Get("/health", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
 			"status":  "ok",
-			"message": "Server is running",
+			"message": "Server is running well",
 		})
 	})
 }

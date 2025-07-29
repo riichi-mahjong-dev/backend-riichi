@@ -136,8 +136,6 @@ func Paginate[T any](
 
 	// Apply filters
 	for field, value := range filters {
-		fmt.Println(field)
-		fmt.Println(value)
 		if filterFuncs, ok := filterFuncs[field]; ok {
 			query = filterFuncs(query, value)
 			continue

@@ -5,10 +5,12 @@ BIN_DIR := bin
 APP := cmd/app
 MIGRATE := cmd/migrate
 SEEDER := cmd/seeder
+WORKER := cmd/worker
 
 APP_BIN := $(BIN_DIR)/app
 MIGRATE_BIN := $(BIN_DIR)/migrate
 SEEDER_BIN := $(BIN_DIR)/seeder
+WORKER_BIN := $(BIN_DIR)/worker
 
 # LDFLAGS for binary size optimization
 LDFLAGS := -s -w -extldflags=-O2
@@ -17,7 +19,7 @@ LDFLAGS := -s -w -extldflags=-O2
 all: build
 
 .PHONY: build
-build: $(APP_BIN) $(MIGRATE_BIN) $(SEEDER_BIN)
+build: $(APP_BIN) $(MIGRATE_BIN) $(SEEDER_BIN) $(WORKER_BIN)
 
 #BUILD APP backend
 $(APP_BIN): $(APP)/*.go
@@ -31,6 +33,11 @@ $(MIGRATE_BIN): $(MIGRATE)/*.go
 	
 #BUILD seeders
 $(SEEDER_BIN): $(SEEDER)/*.go
+	@mkdir -p $(BIN_DIR)
+	$(GO) build -tags=release -ldflags="$(LDFLAGS)" -trimpath -o $@ $<
+
+#BUILD worker
+$(WORKER_BIN): $(WORKER)/*.go
 	@mkdir -p $(BIN_DIR)
 	$(GO) build -tags=release -ldflags="$(LDFLAGS)" -trimpath -o $@ $<
 

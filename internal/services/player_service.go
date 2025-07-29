@@ -57,7 +57,20 @@ func (s *PlayerService) GetAllPlayers(queryPaginate commons.QueryParams) ([]mode
 		models.Player{},
 		[]string{},
 		queryPaginate.Filters,
-		map[string]func(*gorm.DB, any) *gorm.DB{},
+		map[string]func(*gorm.DB, any) *gorm.DB{
+			"mmr_between": func(d *gorm.DB, a any) *gorm.DB {
+				val, ok := a.([]string)
+				if !ok {
+					return d
+				}
+
+				if len(val) != 2 {
+					return d
+				}
+
+				return d.Where("rank BETWEEN ? AND ?", val[0], val[1])
+			},
+		},
 		map[string]func(*gorm.DB) *gorm.DB{
 			"Province": nil,
 			"MatchPlayers": func(db *gorm.DB) *gorm.DB {

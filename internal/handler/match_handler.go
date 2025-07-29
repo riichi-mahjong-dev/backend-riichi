@@ -31,7 +31,7 @@ func (h *MatchHandler) CreateMatch(c *fiber.Ctx) error {
 
 	userData := c.Locals("user").(*models.AuthUser)
 
-	match, err := h.MatchService.CreateMatch(&req, userData.ID, userData.Role)
+	match, err := h.MatchService.CreateMatch(&req, userData.ID, string(userData.UserType))
 	if err != nil {
 		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to create match", err)
 	}
@@ -54,7 +54,7 @@ func (h *MatchHandler) GetMatchByID(c *fiber.Ctx) error {
 }
 
 func (h *MatchHandler) GetAllMatches(c *fiber.Ctx) error {
-	queryPaginate := h.ParseQueryParams(c, []string{"playing_between", "created_between", "match_players.player_id", "provinces", "parlours.id"})
+	queryPaginate := h.ParseQueryParams(c, []string{"playing_between", "created_between", "match_players.player_id", "provinces"})
 
 	matches, total, err := h.MatchService.GetAllMatches(queryPaginate)
 	if err != nil {

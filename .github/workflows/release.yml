@@ -1,0 +1,54 @@
+name: Build Go Project with Makefile and Publish to Release
+
+on:
+  push:
+    tags:
+      - 'v*' # Only trigger on version tags like v1.0.0
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    container:
+      image: debian:12
+
+    env:
+      GO_ENV: production
+      DB_HOST: ${{ secrets.DB_HOST }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_NAME: ${{ secrets.DB_NAME }}
+      DB_PORT: ${{ secrets.DB_PORT }}
+      SECRET_KEY_ACCESS: ${{ secrets.SECRET_KEY_ACCESS }}
+      SECRET_KEY_REFRESH: ${{ secrets.SECRET_KEY_REFRESH }}
+
+    steps:
+      - name: Install build dependencies
+        run: |
+          apt-get update
+          apt-get install -y make golang git ca-certificates
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Print Go version
+        run: go version
+
+      - name: Build project with Makefile
+        run: make build
+
+      - name: Archive binaries
+        run: tar -czf bin.tar.gz -C bin .
+
+      - name: Upload binaries to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: bin.tar.gz
+          tag_name: ${{ github.ref_name }}
+          body: "🚀 Release built on Debian 12 using Make"
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
