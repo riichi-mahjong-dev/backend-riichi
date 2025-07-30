@@ -25,7 +25,7 @@ type Player struct {
 
 type PlayerRequest struct {
 	ProvinceID uint64 `json:"province_id" validate:"required"`
-	Rank       int64  `json:"rank" validate:"required"`
+	Rank       int    `json:"rank" validate:"required"`
 	Name       string `json:"name" validate:"required,min:2"`
 	Country    string `json:"country" validate:"required"`
 	Username   string `json:"username" validate:"required,min:2"`

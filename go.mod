@@ -1,6 +1,8 @@
 module github.com/riichi-mahjong-dev/backend-riichi
 
-go 1.23
+go 1.23.0
+
+toolchain go1.23.3
 
 require (
 	github.com/go-gomail/gomail v0.0.0-20160411212932-81ebce5c23df
