@@ -129,7 +129,7 @@ func (h *MatchHandler) PointMatch(c *fiber.Ctx) error {
 
 	userData := c.Locals("user").(*models.AuthUser)
 
-	match, err := h.MatchService.PointMatch(id, &req, userData.ID)
+	match, err := h.MatchService.PointMatch(id, &req, userData.ID, userData.Role)
 	if err != nil {
 		return h.ErrorResponse(c, fiber.StatusInternalServerError, "Failed to save point match", err)
 	}

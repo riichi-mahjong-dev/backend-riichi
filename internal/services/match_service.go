@@ -26,7 +26,7 @@ func NewMatchService(db *gorm.DB) *MatchService {
 func (s *MatchService) CreateMatch(req *models.MatchRequest, userId uint64, role string) (*models.Match, error) {
 	match := &models.Match{
 		ParlourID: req.ParlourID,
-		PlayingAt: req.PlayingAt,
+		PlayingAt: &req.PlayingAt,
 	}
 
 	if role == "player" {
@@ -60,14 +60,16 @@ func (s *MatchService) CreateMatch(req *models.MatchRequest, userId uint64, role
 	return match, nil
 }
 
-func (s *MatchService) PointMatch(id uint64, req *models.PointMatchRequest, userId uint64) (*models.Match, error) {
+func (s *MatchService) PointMatch(id uint64, req *models.PointMatchRequest, userId uint64, role string) (*models.Match, error) {
 	match, err := s.GetMatchByID(id)
 
 	if err != nil {
 		return nil, err
 	}
 
-	if err := s.checkAdminPermission(userId, match.Parlour.ProvinceID, match.ParlourID); err != nil {
+	fmt.Println(role)
+
+	if err := s.checkAdminPermission(userId, match.Parlour.ProvinceID, match.ParlourID); role == "admni" && err != nil {
 		return nil, fmt.Errorf("you dont't have authority to input point this match")
 	}
 
@@ -83,8 +85,9 @@ func (s *MatchService) PointMatch(id uint64, req *models.PointMatchRequest, user
 			}
 		}
 
-		err := jobs.EnqueueJob(s.DB, "calculate_mmr", map[string]any{
-			"id": id,
+		err := jobs.EnqueueJob(s.DB, "calculate_mmr", models.JobMatch{
+			ID:      match.ID,
+			AdminID: userId,
 		})
 
 		if err != nil {

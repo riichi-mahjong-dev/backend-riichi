@@ -12,7 +12,7 @@ type Match struct {
 	CreatedAt  time.Time  `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt  time.Time  `json:"updated_at" gorm:"autoUpdateTime"`
 	DeletedAt  *time.Time `json:"deleted_at" gorm:"index"`
-	PlayingAt  time.Time  `json:"playing_at"`
+	PlayingAt  *time.Time `json:"playing_at"`
 
 	// Relations
 	MatchPlayers []MatchPlayer `gorm:"foreignKey:MatchID" json:"match_players,omitempty"`
@@ -63,4 +63,9 @@ type MatchResponse struct {
 
 type PointMatchRequest struct {
 	PointMatchPlayers []PointMatchPlayer `json:"point_match_players"`
+}
+
+type JobMatch struct {
+	ID      uint64 `json:"id"`
+	AdminID uint64 `json:"admin_id"`
 }

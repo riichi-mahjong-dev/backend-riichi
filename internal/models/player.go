@@ -3,16 +3,19 @@ package models
 import "time"
 
 type Player struct {
-	ID         uint64     `gorm:"primaryKey" json:"id"`
-	ProvinceID uint64     `gorm:"not null" json:"province_id"`
-	Rank       int64      `gorm:"not null" json:"rank"`
-	Name       string     `gorm:"size:255;not null" json:"name"`
-	Country    string     `gorm:"size:255;not null" json:"country"`
-	Username   string     `gorm:"size:255;not null" json:"username" validate:"required,min:2"`
-	Password   string     `gorm:"size:255;not null" json:"-"`
-	CreatedAt  time.Time  `json:"created_at" gorm:"autoCreateTime"`
-	UpdatedAt  time.Time  `json:"updated_at" gorm:"autoUpdateTime"`
-	DeletedAt  *time.Time `json:"deleted_at" gorm:"index"`
+	ID          uint64     `gorm:"primaryKey" json:"id"`
+	ProvinceID  uint64     `gorm:"not null" json:"province_id"`
+	GameCount   int        `json:"game_count"`
+	Rank        int        `gorm:"not null" json:"rank"`
+	Name        string     `gorm:"size:255;not null" json:"name"`
+	Country     string     `gorm:"size:255;not null" json:"country"`
+	Username    string     `gorm:"size:255;not null" json:"username" validate:"required,min:2"`
+	Password    string     `gorm:"size:255;not null" json:"-"`
+	CreatedAt   time.Time  `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt   time.Time  `json:"updated_at" gorm:"autoUpdateTime"`
+	DeletedAt   *time.Time `json:"deleted_at" gorm:"index"`
+	LastLoginAt *time.Time `json:"last_login_at"`
+	LastMatchAt *time.Time `json:"last_match_at"`
 
 	// Relations
 	Province     *Province     `gorm:"foreignKey:province_id" json:"province,omitempty"`
