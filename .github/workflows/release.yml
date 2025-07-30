@@ -9,9 +9,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    container:
-      image: debian:12
-
     env:
       GO_ENV: production
       DB_HOST: ${{ secrets.DB_HOST }}
@@ -23,16 +20,31 @@ jobs:
       SECRET_KEY_REFRESH: ${{ secrets.SECRET_KEY_REFRESH }}
 
     steps:
-      - name: Install build dependencies
-        run: |
-          apt-get update
-          apt-get install -y make golang git ca-certificates
-
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Set up Go 1.23
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.23
+
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
       - name: Print Go version
         run: go version
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y make git ca-certificates
 
       - name: Build project with Makefile
         run: make build
@@ -45,9 +57,8 @@ jobs:
         with:
           files: bin.tar.gz
           tag_name: ${{ github.ref_name }}
-          body: "🚀 Release built on Debian 12 using Make"
+          body: "🚀 Release built using Go 1.23 and Make"
           draft: false
           prerelease: false
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
