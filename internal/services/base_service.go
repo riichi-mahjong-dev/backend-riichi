@@ -191,6 +191,10 @@ func Paginate[T any](
 		}
 	}
 
+	for _, join := range joins {
+		query = query.Joins(join)
+	}
+
 	query = query.Order(orderBy + " " + order)
 
 	// Count total records

@@ -55,7 +55,14 @@ func (s *PlayerService) GetAllPlayers(queryPaginate commons.QueryParams) ([]mode
 	return Paginate(
 		s.DB,
 		models.Player{},
-		[]string{},
+		[]string{`
+			LEFT JOIN match_players ON match_players.id = (
+				SELECT id FROM match_players
+				WHERE match_players.player_id = players.id
+				ORDER BY created_at DESC
+				LIMIT 1
+			)
+		`},
 		queryPaginate.Filters,
 		map[string]func(*gorm.DB, any) *gorm.DB{
 			"mmr_between": func(d *gorm.DB, a any) *gorm.DB {
@@ -72,10 +79,8 @@ func (s *PlayerService) GetAllPlayers(queryPaginate commons.QueryParams) ([]mode
 			},
 		},
 		map[string]func(*gorm.DB) *gorm.DB{
-			"Province": nil,
-			"MatchPlayers": func(db *gorm.DB) *gorm.DB {
-				return db.Order("created_at DESC").Limit(1)
-			},
+			"Province":    nil,
+			"MatchPlayer": nil,
 		},
 		[]string{
 			"name",

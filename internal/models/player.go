@@ -19,8 +19,9 @@ type Player struct {
 
 	// Relations
 	Province     *Province     `gorm:"foreignKey:province_id" json:"province,omitempty"`
-	MatchPlayers []MatchPlayer `gorm:"foreignKey:player_id" json:"match_player,omitempty"`
+	MatchPlayers []MatchPlayer `gorm:"foreignKey:player_id" json:"match_players,omitempty"`
 	Match        []Match       `gorm:"many2many:match_players" json:"matches,omitempty"`
+	MatchPlayer  *MatchPlayer  `json:"match_player,omitempty"`
 }
 
 type PlayerRequest struct {
