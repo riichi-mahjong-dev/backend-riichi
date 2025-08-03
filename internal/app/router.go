@@ -19,6 +19,7 @@ func InitializeRoute(app *fiber.App, appConfig *commons.AppConfig) {
 	matchService := services.NewMatchService(db.Conn)
 	provinceService := services.NewProvinceService(db.Conn)
 	postService := services.NewPostService(db.Conn)
+	logService := services.NewLogService(db.Conn)
 
 	// Initialize auth service
 	jwtConfig := env.LoadJwtConfig()
@@ -35,6 +36,7 @@ func InitializeRoute(app *fiber.App, appConfig *commons.AppConfig) {
 	provinceHandler := handler.NewProvinceHandler(provinceService)
 	postHandler := handler.NewPostHandler(postService)
 	authHandler := handler.NewAuthHandler(authService)
+	logHandler := handler.NewLogHandler(logService)
 
 	// Authentication routes (public)
 	auth := app.Group("/auth")
@@ -93,6 +95,10 @@ func InitializeRoute(app *fiber.App, appConfig *commons.AppConfig) {
 	api.Post("/posts", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin", "super-admin"}), postHandler.CreatePost)
 	api.Put("/posts/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin", "super-admin"}), postHandler.UpdatePost)
 	api.Delete("/posts/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin", "super-admin"}), postHandler.DeletePost)
+
+	// Log routes (public view)
+	api.Get("/logs", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin", "super-admin"}), logHandler.GetAllLogs)
+	api.Get("/logs/:id", authMiddleware.CheckAuthorization, authMiddleware.CheckRole([]string{"admin", "super-admin"}), logHandler.GetLogByID)
 
 	// Health check endpoint
 	api.Get("/health", func(c *fiber.Ctx) error {

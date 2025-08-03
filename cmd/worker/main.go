@@ -47,7 +47,6 @@ func main() {
 				return
 			default:
 				job, err := jobs.FetchPendingJob(db.Conn)
-				log.Printf("fetch job %v\n", job)
 				if err != nil {
 					time.Sleep(5 * time.Second)
 					continue
@@ -67,7 +66,6 @@ func main() {
 
 					handler, ok := handlers[job.JobType]
 					if !ok {
-						log.Printf("Unknown job type: %s\n", job.JobType)
 						jobs.MarkJobFailed(db.Conn, job.ID, "unknown job type")
 						return
 					}
@@ -76,7 +74,6 @@ func main() {
 					defer cancel()
 
 					if err := handler(ctx, db.Conn, *job); err != nil {
-						log.Printf("job %d failed: %v\n", job.ID, err)
 						jobs.MarkJobFailed(db.Conn, job.ID, err.Error())
 					} else {
 						jobs.MarkJobDone(db.Conn, job.ID)

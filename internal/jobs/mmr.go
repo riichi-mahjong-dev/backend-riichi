@@ -3,7 +3,6 @@ package jobs
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"math"
 	"sort"
 	"time"
@@ -23,7 +22,6 @@ type DataCalculate struct {
 }
 
 func HandleMMR(_ context.Context, db *gorm.DB, job models.Job) error {
-	log.Printf("Calculate MMR %d", job.ID)
 	var jobMatch models.JobMatch
 	if err := json.Unmarshal(job.Payload, &jobMatch); err != nil {
 		return err
@@ -45,7 +43,7 @@ func HandleMMR(_ context.Context, db *gorm.DB, job models.Job) error {
 			} else {
 				lastPlayed = time.Now()
 			}
-			decayRank := decayInactiveR(matchPlayer.Player.Rank, lastPlayed)
+			decayRank := int(decayInactiveR(matchPlayer.Player.Rank, lastPlayed))
 			dataCalculate = append(dataCalculate, DataCalculate{
 				MatchPlayerID: matchPlayer.ID,
 				PlayerID:      matchPlayer.PlayerID,
@@ -88,21 +86,16 @@ func HandleMMR(_ context.Context, db *gorm.DB, job models.Job) error {
 			return err
 		}
 
+		playerUpdate := map[string]any{
+			"rank": calculate.NewRank + int(change),
+		}
+
 		if calculate.Decay == 0 {
-			playerUpdate := map[string]any{
-				"last_match_at": time.Now(),
-				"rank":          calculate.NewRank + change,
-			}
-			if err := db.Model(&models.Player{}).Where("id = ?", calculate.PlayerID).Updates(playerUpdate).Error; err != nil {
-				return err
-			}
-		} else {
-			playerUpdate := map[string]any{
-				"rank": calculate.NewRank + change,
-			}
-			if err := db.Model(&models.Player{}).Where("id = ?", calculate.PlayerID).Updates(playerUpdate).Error; err != nil {
-				return err
-			}
+			playerUpdate["last_match_at"] = time.Now()
+		}
+
+		if err := db.Model(&models.Player{}).Where("id = ?", calculate.PlayerID).Updates(playerUpdate).Error; err != nil {
+			return err
 		}
 	}
 
@@ -149,28 +142,22 @@ func averageR(players []DataCalculate) int {
 	return sum / len(players)
 }
 
-func expectedScore(playerR, avgR int) float64 {
-	return float64(playerR-avgR) / 100.0
-}
-
-func calculateRChange(player DataCalculate, avgScore, avgR, place int) int {
+func calculateRChange(player DataCalculate, avgScore, avgR, place int) float64 {
 	P := placementScore(place)
 	scoreBonus := float64(player.Score-avgScore) / 1000.0
 	ratingAdj := float64(avgR-player.NewRank) / 100.0
 	C := coefficient(player.GamesPlayed)
+
 	delta := (P + scoreBonus + ratingAdj) * C
-	return int(math.Round(delta))
+	return math.Round(delta)
 }
 
-func decayInactiveR(r int, lastPlayed time.Time) int {
-	days := int(time.Since(lastPlayed).Hours() / 24)
+func decayInactiveR(r int, lastPlayed time.Time) float64 {
+	days := time.Since(lastPlayed).Hours() / 24
 	if days <= 30 {
-		return r
+		return float64(r)
 	}
 	decayDays := days - 30
-	penalty := decayDays / 10
-	if penalty > 50 {
-		penalty = 50
-	}
-	return r - penalty
+	penalty := math.Min(decayDays/10, 50)
+	return float64(r) - penalty
 }
