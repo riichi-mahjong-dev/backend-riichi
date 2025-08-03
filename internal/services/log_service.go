@@ -1,7 +1,9 @@
 package services
 
 import (
-	"github.com/riichi-mahjong-dev/backend-riichi/internal/jobs"
+	"strings"
+
+	"github.com/riichi-mahjong-dev/backend-riichi/commons"
 	"github.com/riichi-mahjong-dev/backend-riichi/internal/models"
 	"gorm.io/gorm"
 )
@@ -16,9 +18,9 @@ func NewLogService(db *gorm.DB) *LogService {
 	}
 }
 
-func (s *LogService) GetLogById(id uint64) (*models.Job. error) {
+func (s *LogService) GetLogById(id uint64) (*models.Job, error) {
 	var job models.Job
-	err := s.GetByID(&jobs, id)
+	err := s.GetByID(&job, id)
 	if err != nil {
 		return nil, err
 	}
