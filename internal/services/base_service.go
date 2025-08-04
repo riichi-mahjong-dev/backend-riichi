@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/riichi-mahjong-dev/backend-riichi/commons"
 	"gorm.io/gorm"
 )
 
@@ -109,14 +110,16 @@ func Paginate[T any](
 	filterFuncs map[string]func(*gorm.DB, any) *gorm.DB,
 	includes map[string]func(*gorm.DB) *gorm.DB,
 	searchFields []string,
-	searchTerm string,
-	page int,
-	pageSize int,
-	orderBy string,
-	order string,
+	queryParams commons.QueryParams,
 ) ([]T, int64, error) {
 	var results []T
 	var total int64
+
+	page := queryParams.Page
+	pageSize := queryParams.PageSize
+	searchTerm := queryParams.Search
+	orderBy := queryParams.OrderBy
+	order := queryParams.Order
 
 	// Default pagination
 	if page < 1 {

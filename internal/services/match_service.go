@@ -153,11 +153,7 @@ func (s *MatchService) GetAllMatches(queryPaginate commons.QueryParams) ([]model
 		},
 		preloads,
 		[]string{},
-		queryPaginate.Search,
-		queryPaginate.Page,
-		queryPaginate.PageSize,
-		queryPaginate.OrderBy,
-		queryPaginate.Order,
+		queryPaginate,
 	)
 }
 

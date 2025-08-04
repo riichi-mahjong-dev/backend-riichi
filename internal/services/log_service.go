@@ -52,10 +52,6 @@ func (s *LogService) GetAllLogs(queryPaginate commons.QueryParams) ([]models.Job
 		},
 		preloads,
 		[]string{"job_type", "status", "reason"},
-		queryPaginate.Search,
-		queryPaginate.Page,
-		queryPaginate.PageSize,
-		queryPaginate.OrderBy,
-		queryPaginate.Order,
+		queryPaginate,
 	)
 }

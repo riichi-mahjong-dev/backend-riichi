@@ -49,11 +49,7 @@ func (s *PostService) GetAllPosts(queryPaginate commons.QueryParams) ([]models.P
 		map[string]func(*gorm.DB, any) *gorm.DB{},
 		preloads,
 		[]string{"title", "slug"},
-		queryPaginate.Search,
-		queryPaginate.Page,
-		queryPaginate.PageSize,
-		queryPaginate.OrderBy,
-		queryPaginate.Order,
+		queryPaginate,
 	)
 }
 

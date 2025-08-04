@@ -52,11 +52,7 @@ func (s *ParlourService) GetAllParlours(queryPaginate commons.QueryParams) ([]mo
 		[]string{
 			"name",
 		},
-		queryPaginate.Search,
-		queryPaginate.Page,
-		queryPaginate.PageSize,
-		queryPaginate.OrderBy,
-		queryPaginate.Order,
+		queryPaginate,
 	)
 }
 

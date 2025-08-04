@@ -47,11 +47,7 @@ func (s *ProvinceService) GetAllProvinces(queryPaginate commons.QueryParams) ([]
 		map[string]func(*gorm.DB, any) *gorm.DB{},
 		preloads,
 		[]string{"name"},
-		queryPaginate.Search,
-		queryPaginate.Page,
-		queryPaginate.PageSize,
-		queryPaginate.OrderBy,
-		queryPaginate.Order,
+		queryPaginate,
 	)
 }
 

@@ -87,11 +87,7 @@ func (s *AdminService) GetAllAdmins(queryPaginate commons.QueryParams) ([]models
 		map[string]func(*gorm.DB, any) *gorm.DB{},
 		preloads,
 		[]string{"username"},
-		queryPaginate.Search,
-		queryPaginate.Page,
-		queryPaginate.PageSize,
-		queryPaginate.OrderBy,
-		queryPaginate.Order,
+		queryPaginate,
 	)
 }
 

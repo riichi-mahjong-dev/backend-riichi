@@ -86,11 +86,7 @@ func (s *PlayerService) GetAllPlayers(queryPaginate commons.QueryParams) ([]mode
 			"name",
 			"username",
 		},
-		queryPaginate.Search,
-		queryPaginate.Page,
-		queryPaginate.PageSize,
-		queryPaginate.OrderBy,
-		queryPaginate.Order,
+		queryPaginate,
 	)
 }
 
