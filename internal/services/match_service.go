@@ -106,7 +106,7 @@ func (s *MatchService) PointMatch(id uint64, req *models.PointMatchRequest, user
 
 func (s *MatchService) GetMatchByID(id uint64) (*models.Match, error) {
 	var match models.Match
-	preloads := []string{"Parlour", "Parlour.Province", "Creator", "MatchPlayers.Player"}
+	preloads := []string{"Parlour", "Parlour.Province", "Creator", "MatchPlayers.Player", "Approver"}
 	err := s.GetWithPreload(&match, id, preloads...)
 	if err != nil {
 		return nil, err
@@ -115,7 +115,7 @@ func (s *MatchService) GetMatchByID(id uint64) (*models.Match, error) {
 }
 
 func (s *MatchService) GetAllMatches(queryPaginate commons.QueryParams) ([]models.Match, int64, error) {
-	preloads := map[string]func(*gorm.DB) *gorm.DB{"Parlour": nil, "Creator": nil, "MatchPlayers.Player": nil}
+	preloads := map[string]func(*gorm.DB) *gorm.DB{"Parlour": nil, "Creator": nil, "MatchPlayers.Player": nil, "Approver": nil}
 	return Paginate(
 		s.DB,
 		models.Match{},

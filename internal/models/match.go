@@ -5,7 +5,7 @@ import "time"
 type Match struct {
 	ApprovedBy *uint64    `json:"approved_by"`
 	ApprovedAt *time.Time `json:"approved_at"`
-	Approver   *Admin     `gorm:"foreignKey:approved_by" json:"approved_by,omitempty"`
+	Approver   *Admin     `gorm:"foreignKey:approved_by" json:"approver,omitempty"`
 	ID         uint64     `gorm:"primaryKey" json:"id"`
 	ParlourID  uint64     `gorm:"not null" json:"parlour_id" validate:"required"`
 	CreatedBy  *uint64    `json:"created_by"`
