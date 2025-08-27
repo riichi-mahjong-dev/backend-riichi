@@ -24,28 +24,6 @@ type QueryParams struct {
 	Filters  map[string]any // Custom filters, e.g., age, status
 }
 
-// type PaginationParams struct {
-// 	Take   int    `query:"take"`
-// 	Skip   int    `query:"skip"`
-// 	Search string `query:"search"`
-// 	Sort   string `query:"sort"`
-// 	SortBy string `query:"sortBy"`
-// }
-
-// func (paginationParams *PaginationParams) SetParams(take int, sort, sortBy string) {
-// 	if paginationParams.Take == 0 {
-// 		paginationParams.Take = 10
-// 	}
-
-// 	if paginationParams.Sort == "" {
-// 		paginationParams.Sort = sort
-// 	}
-
-// 	if paginationParams.SortBy == "" {
-// 		paginationParams.SortBy = sortBy
-// 	}
-// }
-
 func toSnakeCasePlural(name string) string {
 	// Convert CamelCase to snake_case
 	re := regexp.MustCompile("([a-z0-9])([A-Z])")
