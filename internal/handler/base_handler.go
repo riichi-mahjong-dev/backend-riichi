@@ -1,3 +1,8 @@
+/*
+ * Base Handler to use by other handler, common function used by handler
+ *
+ * Author: Kristian Ruben
+ */
 package handler
 
 import (
@@ -84,21 +89,13 @@ func (h *BaseHandler) CalculatePaginationMeta(page, limit int, total int64) *Pag
 }
 
 func (h *BaseHandler) ParseQueryParams(c *fiber.Ctx, filtersAllowed []string) commons.QueryParams {
-	page := c.QueryInt("page[number]", 1)
-	pageSize := c.QueryInt("page[size]", 10)
+	page := max(c.QueryInt("page[number]", 1), 1)
+	pageSize := max(c.QueryInt("page[size]", 10), 10)
 	search := c.Query("search", "")
 	sort := c.Query("sort", "id")
 	filters := make(map[string]any)
 	order := "asc"
 	orderBy := sort
-
-	if page < 1 {
-		page = 1
-	}
-
-	if pageSize < 1 {
-		pageSize = 10
-	}
 
 	if len(sort) > 0 && sort[0] == '-' {
 		order = "desc"

@@ -1,3 +1,8 @@
+/*
+ * Auth Handler, to handle authentication for player and admin, and implement refresh token if token is expired and refresh token not and used to create new token
+ *
+ * Author: Kristian Ruben
+ */
 package handler
 
 import (

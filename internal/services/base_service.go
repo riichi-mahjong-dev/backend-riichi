@@ -115,19 +115,12 @@ func Paginate[T any](
 	var results []T
 	var total int64
 
-	page := queryParams.Page
-	pageSize := queryParams.PageSize
+	page := max(queryParams.Page, 1)
+	pageSize := max(queryParams.PageSize, 10)
 	searchTerm := queryParams.Search
 	orderBy := queryParams.OrderBy
 	order := queryParams.Order
 
-	// Default pagination
-	if page < 1 {
-		page = 1
-	}
-	if pageSize < 1 {
-		pageSize = 10
-	}
 	offset := (page - 1) * pageSize
 
 	query := db.Model(model)

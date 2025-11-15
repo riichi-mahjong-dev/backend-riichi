@@ -33,7 +33,7 @@ func ConnectDatabase(dbConfig *configs.DatabaseConfig) (*Database, error) {
 	sqlConn, err := sql.Open("mysql", dsn)
 
 	if err != nil {
-		return nil, fmt.Errorf("unable to connect sql", err)
+		return nil, fmt.Errorf("unable to connect sql: %w", err)
 	}
 
 	sqlDB, _ := db.DB()

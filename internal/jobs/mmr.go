@@ -1,3 +1,8 @@
+/*
+ * MMR job to calculate mmr when match is inserted and accepted
+ *
+ * Author: Kristian Ruben
+ */
 package jobs
 
 import (

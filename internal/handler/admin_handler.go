@@ -1,3 +1,8 @@
+/*
+ * Admin handler to handle data admin, select, insert, delete, update
+ *
+ * Author: Kristian Ruben
+ */
 package handler
 
 import (

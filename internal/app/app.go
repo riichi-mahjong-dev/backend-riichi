@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/riichi-mahjong-dev/backend-riichi/commons"
+	"github.com/riichi-mahjong-dev/backend-riichi/internal/app/router"
 )
 
 func CreateApp(appConfig commons.AppConfig) {
@@ -13,7 +14,7 @@ func CreateApp(appConfig commons.AppConfig) {
 
 	app.Static("/images", "./images")
 
-	InitializeRoute(app, &appConfig)
+	router.InitializeRoute(app, &appConfig)
 
 	app.Listen(":8080")
 }
